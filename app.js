@@ -115,15 +115,8 @@
 
   const monthLabel = document.getElementById("month-label");
   const grid = document.getElementById("calendar-grid");
-  const arrivalsBody = document.getElementById("arrivals-body");
-  const arrivalCountEl = document.getElementById("arrival-count");
-  const filterLine = document.getElementById("filter-line");
-  const sideTitle = document.getElementById("side-title");
-  const emptyArrivals = document.getElementById("empty-arrivals");
   const pdfList = document.getElementById("pdf-list");
   const csvStatus = document.getElementById("csv-status");
-  const clearFilterBtn = document.getElementById("clear-filter");
-  const tableWrap = document.querySelector("#main-dashboard .table-wrap");
   const mainDashboard = document.getElementById("main-dashboard");
 
   const HUA_BOOKING_SUBJECT = "HUA Booking";
@@ -182,10 +175,6 @@
     const checkoutIso = addCalendarDays(arr, nights);
     if (eventDayIso >= checkoutIso) return false;
     return true;
-  }
-
-  function arrivalsEligibleForEventOnDate(eventDayIso) {
-    return arrivals.filter((a) => guestEligibleForEventOnDate(a, eventDayIso));
   }
 
   /** Events (from flyers) where this arrival has an opportunity on that event date. */
@@ -363,13 +352,6 @@
     return null;
   }
 
-  function arrivalsForMonth(year, monthIndex) {
-    return arrivals.filter((a) => {
-      const d = parseLocalDate(a.arrivalDate);
-      return d.getFullYear() === year && d.getMonth() === monthIndex;
-    });
-  }
-
   function eventsForMonth(year, monthIndex) {
     return events.filter((e) => {
       const d = parseLocalDate(e.date);
@@ -473,93 +455,7 @@
       selectedEventId = null;
     }
     renderCalendar();
-    renderArrivalsPanel();
     renderPdfPreview();
-  }
-
-  function clearDayFilter() {
-    selectedDay = null;
-    selectedEventId = null;
-    renderCalendar();
-    renderArrivalsPanel();
-    renderPdfPreview();
-  }
-
-  clearFilterBtn.addEventListener("click", clearDayFilter);
-
-  function renderArrivalsPanel() {
-    const y = viewDate.getFullYear();
-    const m = viewDate.getMonth();
-    const monthName = viewDate.toLocaleDateString(undefined, { month: "long", year: "numeric" });
-
-    let list;
-    let filterText = "";
-
-    if (selectedDay) {
-      const evs = eventsOnDate(selectedDay);
-      if (!evs.length) {
-        list = [];
-        filterText = formatDisplayDate(selectedDay);
-      } else {
-        list = arrivalsEligibleForEventOnDate(selectedDay);
-        filterText = `${formatDisplayDate(selectedDay)} — ${evs.map((e) => e.title).join(", ")}`;
-      }
-      sideTitle.textContent = "Opportunities";
-    } else {
-      list = arrivalsForMonth(y, m);
-      sideTitle.textContent = `Opportunities — ${monthName}`;
-    }
-
-    const oppWord = (n) => (n === 1 ? "1 opportunity" : `${n} opportunities`);
-    arrivalCountEl.textContent =
-      list.length === 0 ? "No opportunities in this view." : oppWord(list.length);
-
-    if (selectedDay) {
-      filterLine.textContent = filterText;
-    } else {
-      filterLine.textContent =
-        "Click a day with an event (purple underline) to list opportunities for that evening.";
-    }
-
-    clearFilterBtn.hidden = !selectedDay;
-
-    arrivalsBody.innerHTML = "";
-    const showEmpty = arrivals.length === 0;
-    emptyArrivals.classList.toggle("visible", showEmpty);
-    if (tableWrap) tableWrap.style.display = showEmpty ? "none" : "";
-
-    if (showEmpty) return;
-
-    for (const a of list.sort((x, y) => x.arrivalDate.localeCompare(y.arrivalDate))) {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${escapeHtml(a.leadId)}</td>
-        <td>${escapeHtml(a.guest)}</td>
-        <td>${escapeHtml(a.property)}</td>
-        <td>${escapeHtml(formatDisplayDate(a.arrivalDate))}</td>
-        <td>${escapeHtml(String(a.nights))}</td>
-        <td>${escapeHtml(a.resvType || "")}</td>
-        <td class="col-email">${huaEmailButtonHtml(a)}</td>
-      `;
-      arrivalsBody.appendChild(tr);
-    }
-  }
-
-  function onArrivalTableEmailClick(e, tableEl) {
-    const btn = e.target.closest(".hua-email-btn");
-    if (!btn || !tableEl.contains(btn)) return false;
-    e.preventDefault();
-    e.stopPropagation();
-    const a = findArrivalByKey(btn.dataset.leadId || "", btn.dataset.arrivalDate || "");
-    if (a) openHuaBookingEmail(a);
-    else alert("Could not find this arrival. Try refreshing and re-uploading your CSV.");
-    return true;
-  }
-
-  if (arrivalsBody) {
-    arrivalsBody.addEventListener("click", (e) => {
-      if (onArrivalTableEmailClick(e, arrivalsBody)) return;
-    });
   }
 
   function formatDisplayDate(iso) {
@@ -570,10 +466,6 @@
       day: "numeric",
       year: "numeric",
     });
-  }
-
-  function findArrivalByKey(leadId, arrivalDate) {
-    return arrivals.find((a) => a.leadId === leadId && a.arrivalDate === arrivalDate);
   }
 
   /** Event context for booking email (calendar filter or first overlap). */
@@ -828,12 +720,6 @@
     showHuaBookingEmailHint(copied);
   }
 
-  function huaEmailButtonHtml(arrival) {
-    const lead = escapeHtml(arrival.leadId || "");
-    const date = escapeHtml(arrival.arrivalDate || "");
-    return `<button type="button" class="hua-email-btn" data-lead-id="${lead}" data-arrival-date="${date}" title="Download formatted HUA Booking email (.eml) for Outlook — subject: HUA Booking">Email</button>`;
-  }
-
   function escapeHtml(s) {
     const div = document.createElement("div");
     div.textContent = s;
@@ -1017,7 +903,6 @@
     selectedDay = null;
     selectedEventId = null;
     renderCalendar();
-    renderArrivalsPanel();
     renderPdfPreview();
   });
 
@@ -1026,7 +911,6 @@
     selectedDay = null;
     selectedEventId = null;
     renderCalendar();
-    renderArrivalsPanel();
     renderPdfPreview();
   });
 
@@ -1035,7 +919,6 @@
     selectedDay = null;
     selectedEventId = null;
     renderCalendar();
-    renderArrivalsPanel();
     renderPdfPreview();
   });
 
@@ -1120,7 +1003,6 @@
     saveEvents();
     renderPdfList();
     renderCalendar();
-    renderArrivalsPanel();
     renderPdfPreview();
     e.target.value = "";
     if (added < files.length && added === 0) {
@@ -1150,7 +1032,6 @@
     selectedEventId = null;
     renderPdfList();
     renderCalendar();
-    renderArrivalsPanel();
     renderPdfPreview();
   });
 
@@ -1163,7 +1044,6 @@
     arrivals = [];
     saveArrivals();
     if (csvStatus) csvStatus.textContent = "";
-    renderArrivalsPanel();
     renderCalendar();
   });
 
@@ -1361,7 +1241,6 @@
           }
 
           csvStatus.textContent = parts.filter(Boolean).join(" ");
-          renderArrivalsPanel();
           renderCalendar();
           e.target.value = "";
         },
@@ -1379,6 +1258,5 @@
 
   renderPdfList();
   renderCalendar();
-  renderArrivalsPanel();
   renderPdfPreview();
 })();
