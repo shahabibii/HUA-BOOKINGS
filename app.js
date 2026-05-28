@@ -893,20 +893,9 @@
 
   let lastBookHuaHtml = "";
   let lastBookHuaPlain = "";
+  let pendingBookHua = null;
   let outlookWebWindow = null;
   let lastOutlookWebOpenAt = 0;
-  let bookHuaComposeInFlight = false;
-
-  const OUTLOOK_PREF_KEY = "hua_outlook_client";
-
-  function getOutlookPref() {
-    const pref = localStorage.getItem(OUTLOOK_PREF_KEY);
-    return pref === "desktop" || pref === "web" ? pref : null;
-  }
-
-  function setOutlookPref(mode) {
-    localStorage.setItem(OUTLOOK_PREF_KEY, mode);
-  }
 
   function triggerOutlookDesktopProtocol(subject) {
     const qs = new URLSearchParams({ subject }).toString();
@@ -974,57 +963,24 @@
     }
   }
 
-  function setBookHuaModalSteps(steps) {
-    const list = document.getElementById("book-hua-modal-steps");
-    if (!list) return;
-    list.innerHTML = steps.map((step) => `<li>${step}</li>`).join("");
-  }
-
-  function showBookHuaModal(mode, copied) {
+  function showBookHuaView(view, copied) {
     const modal = document.getElementById("book-hua-modal");
-    const title = document.getElementById("book-hua-modal-title");
-    const lead = document.getElementById("book-hua-modal-lead");
+    const chooseView = document.getElementById("book-hua-view-choose");
+    const webView = document.getElementById("book-hua-view-web");
+    const desktopView = document.getElementById("book-hua-view-desktop");
     const status = document.getElementById("book-hua-modal-copy-status");
-    const footnote = document.getElementById("book-hua-modal-footnote");
-    const webActions = document.getElementById("book-hua-modal-web-actions");
-    const desktopActions = document.getElementById("book-hua-modal-desktop-actions");
     if (!modal) return;
 
-    const isDesktop = mode === "desktop";
-    if (title) {
-      title.textContent = isDesktop ? "Opening Outlook desktop" : "Paste the booking form";
+    if (chooseView) chooseView.hidden = view !== "choose";
+    if (webView) webView.hidden = view !== "web";
+    if (desktopView) desktopView.hidden = view !== "desktop";
+
+    if (view === "web" && status) {
+      status.textContent = copied
+        ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
+        : "Copy failed in this browser. Use Copy template again, or download the .eml file instead.";
     }
-    if (lead) {
-      lead.innerHTML = isDesktop
-        ? "Outlook desktop should open with subject <strong>HUA BOOKING</strong>. A formatted <strong>.eml</strong> file was also downloaded."
-        : "Outlook on the web opened with subject <strong>HUA BOOKING</strong>. The bold booking form is on your clipboard — paste it into the body.";
-    }
-    if (isDesktop) {
-      setBookHuaModalSteps([
-        "If a compose window did not appear, open the downloaded <strong>.eml</strong> file from Downloads.",
-        "The .eml includes the full green/yellow Excel-style template.",
-      ]);
-    } else {
-      setBookHuaModalSteps([
-        "Click inside the empty email body in Outlook.",
-        "Press <strong>Cmd+V</strong> (Mac) or <strong>Ctrl+V</strong> (Windows) to paste the bold form table.",
-        "Known booking details from your calendar selection appear after each label — complete any empty rows.",
-      ]);
-    }
-    if (status) {
-      status.textContent = isDesktop
-        ? ""
-        : copied
-          ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
-          : "Copy failed in this browser. Use Copy template again, or open the .eml file from Downloads.";
-    }
-    if (footnote) {
-      footnote.innerHTML = isDesktop
-        ? "Need the web version instead? Click <strong>Use Outlook Web instead</strong> below."
-        : 'Using the <strong>Outlook desktop app</strong>? Open the downloaded <strong>.eml</strong> file, or click <button type="button" class="book-hua-inline-link" id="book-hua-pref-desktop">always use desktop Outlook</button>.';
-    }
-    if (webActions) webActions.hidden = isDesktop;
-    if (desktopActions) desktopActions.hidden = !isDesktop;
+
     modal.hidden = false;
   }
 
@@ -1033,46 +989,33 @@
     if (modal) modal.hidden = true;
   }
 
-  function preferOutlookDesktop() {
-    setOutlookPref("desktop");
-    triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT);
-    showBookHuaModal("desktop");
+  function openBookHuaChooser(arrival, event) {
+    pendingBookHua = { arrival, event };
+    lastBookHuaHtml = buildHuaBookingWebHtml(arrival, event);
+    lastBookHuaPlain = buildHuaBookingWebPlainBody(arrival, event);
+    showBookHuaView("choose");
   }
 
-  async function openBookHuaCompose(arrival, event) {
-    if (bookHuaComposeInFlight) return;
-    bookHuaComposeInFlight = true;
+  async function launchBookHuaWeb() {
+    if (!pendingBookHua) return;
+    const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, lastBookHuaPlain);
+    openOutlookWebComposeOnce();
+    showBookHuaView("web", copied);
+  }
 
-    const bookHuaBtn = document.getElementById("book-hua-btn");
-    if (bookHuaBtn) bookHuaBtn.disabled = true;
+  function launchBookHuaDesktop() {
+    if (!pendingBookHua) return;
+    const { arrival, event } = pendingBookHua;
+    downloadHuaBookingEml(arrival, event);
+    triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT);
+    showBookHuaView("desktop");
+  }
 
-    const pref = getOutlookPref();
-    const useDesktop = pref === "desktop";
-    const plainBody = buildHuaBookingWebPlainBody(arrival, event);
-    const html = buildHuaBookingWebHtml(arrival, event);
-    lastBookHuaHtml = html;
-    lastBookHuaPlain = plainBody;
-
-    if (!useDesktop) {
-      openOutlookWebComposeOnce();
-      if (pref === null) setOutlookPref("web");
-    }
-
-    try {
-      const copied = await copyHuaBookingHtmlToClipboard(html, plainBody);
-      downloadHuaBookingEml(arrival, event);
-
-      if (useDesktop) {
-        triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT);
-        showBookHuaModal("desktop");
-        return;
-      }
-
-      showBookHuaModal("web", copied);
-    } finally {
-      bookHuaComposeInFlight = false;
-      if (bookHuaBtn) bookHuaBtn.disabled = false;
-    }
+  function launchBookHuaEmlOnly() {
+    if (!pendingBookHua) return;
+    const { arrival, event } = pendingBookHua;
+    downloadHuaBookingEml(arrival, event);
+    hideBookHuaModal();
   }
 
   function emptyArrivalRecord() {
@@ -1097,7 +1040,7 @@
   async function openHuaBookingEmail(arrival) {
     if (!arrival) return;
     const event = pickEventForBookingEmail(arrival);
-    await openBookHuaCompose(arrival, event);
+    openBookHuaChooser(arrival, event);
   }
 
   function escapeHtml(s) {
@@ -1362,12 +1305,30 @@
   if (bookHuaBtn) {
     bookHuaBtn.addEventListener("click", () => {
       const { arrival, event } = getBookingContextForBookHua();
-      void openBookHuaCompose(arrival, event);
+      openBookHuaChooser(arrival, event);
     });
+  }
+
+  const bookHuaChooseWeb = document.getElementById("book-hua-choose-web");
+  const bookHuaChooseDesktop = document.getElementById("book-hua-choose-desktop");
+  const bookHuaChooseEml = document.getElementById("book-hua-choose-eml");
+  const bookHuaChooseCancel = document.getElementById("book-hua-choose-cancel");
+  if (bookHuaChooseWeb) {
+    bookHuaChooseWeb.addEventListener("click", () => void launchBookHuaWeb());
+  }
+  if (bookHuaChooseDesktop) {
+    bookHuaChooseDesktop.addEventListener("click", () => launchBookHuaDesktop());
+  }
+  if (bookHuaChooseEml) {
+    bookHuaChooseEml.addEventListener("click", () => launchBookHuaEmlOnly());
+  }
+  if (bookHuaChooseCancel) {
+    bookHuaChooseCancel.addEventListener("click", () => hideBookHuaModal());
   }
 
   const bookHuaCopyAgain = document.getElementById("book-hua-copy-again");
   const bookHuaOpenWeb = document.getElementById("book-hua-open-web");
+  const bookHuaBackWeb = document.getElementById("book-hua-back-web");
   const bookHuaModalClose = document.getElementById("book-hua-modal-close");
   if (bookHuaCopyAgain) {
     bookHuaCopyAgain.addEventListener("click", async () => {
@@ -1378,30 +1339,32 @@
       if (status) {
         status.textContent = copied
           ? "Copied again — paste in Outlook with Cmd+V or Ctrl+V."
-          : "Copy failed. Try the .eml file from Downloads instead.";
+          : "Copy failed. Try downloading the .eml file instead.";
       }
     });
   }
   if (bookHuaOpenWeb) {
     bookHuaOpenWeb.addEventListener("click", () => openOutlookWebComposeOnce());
   }
-  const bookHuaUseWeb = document.getElementById("book-hua-use-web");
-  if (bookHuaUseWeb) {
-    bookHuaUseWeb.addEventListener("click", () => {
-      setOutlookPref("web");
-      openOutlookWebComposeOnce();
-      showBookHuaModal("web", Boolean(lastBookHuaHtml));
+  if (bookHuaBackWeb) {
+    bookHuaBackWeb.addEventListener("click", () => showBookHuaView("choose"));
+  }
+  const bookHuaRedownloadEml = document.getElementById("book-hua-redownload-eml");
+  const bookHuaOpenDesktop = document.getElementById("book-hua-open-desktop");
+  const bookHuaBackDesktop = document.getElementById("book-hua-back-desktop");
+  const bookHuaModalCloseDesktop = document.getElementById("book-hua-modal-close-desktop");
+  if (bookHuaRedownloadEml) {
+    bookHuaRedownloadEml.addEventListener("click", () => {
+      if (!pendingBookHua) return;
+      downloadHuaBookingEml(pendingBookHua.arrival, pendingBookHua.event);
     });
   }
-  document.addEventListener("click", (event) => {
-    const target = event.target;
-    if (!(target instanceof Element)) return;
-    if (target.id === "book-hua-pref-desktop") {
-      event.preventDefault();
-      preferOutlookDesktop();
-    }
-  });
-  const bookHuaModalCloseDesktop = document.getElementById("book-hua-modal-close-desktop");
+  if (bookHuaOpenDesktop) {
+    bookHuaOpenDesktop.addEventListener("click", () => triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT));
+  }
+  if (bookHuaBackDesktop) {
+    bookHuaBackDesktop.addEventListener("click", () => showBookHuaView("choose"));
+  }
   if (bookHuaModalCloseDesktop) {
     bookHuaModalCloseDesktop.addEventListener("click", () => hideBookHuaModal());
   }

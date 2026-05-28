@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260530f" />
+  <link rel="stylesheet" href="styles.css?v=20260530g" />
 </head>
 <body>
   <div class="app">
@@ -95,25 +95,64 @@
 
   <div class="book-hua-modal" id="book-hua-modal" hidden>
     <div class="book-hua-modal-card" role="dialog" aria-labelledby="book-hua-modal-title" aria-modal="true">
-      <h3 class="book-hua-modal-title" id="book-hua-modal-title">Paste the booking form</h3>
-      <p class="book-hua-modal-lead" id="book-hua-modal-lead"></p>
-      <ol class="book-hua-modal-steps" id="book-hua-modal-steps"></ol>
-      <p class="book-hua-modal-note" id="book-hua-modal-copy-status"></p>
-      <p class="book-hua-modal-note" id="book-hua-modal-footnote"></p>
-      <div class="book-hua-modal-actions" id="book-hua-modal-web-actions">
-        <button type="button" class="book-hua-modal-btn primary" id="book-hua-copy-again">Copy template again</button>
-        <button type="button" class="book-hua-modal-btn" id="book-hua-open-web">Open Outlook Web</button>
-        <button type="button" class="book-hua-modal-btn ghost" id="book-hua-modal-close">Done</button>
+      <div id="book-hua-view-choose">
+        <h3 class="book-hua-modal-title" id="book-hua-modal-title">Send HUA booking</h3>
+        <p class="book-hua-modal-lead">Choose how you want to open the booking email. Subject will be <strong>HUA BOOKING</strong>.</p>
+        <div class="book-hua-choice-list">
+          <button type="button" class="book-hua-choice-btn" id="book-hua-choose-web">
+            <span class="book-hua-choice-label">Outlook Web</span>
+            <span class="book-hua-choice-desc">Opens compose in your browser. Bold black-and-white form copied — paste into the body.</span>
+          </button>
+          <button type="button" class="book-hua-choice-btn" id="book-hua-choose-desktop">
+            <span class="book-hua-choice-label">Outlook Desktop</span>
+            <span class="book-hua-choice-desc">Opens the Outlook app and downloads an .eml with the full green/yellow template.</span>
+          </button>
+          <button type="button" class="book-hua-choice-btn" id="book-hua-choose-eml">
+            <span class="book-hua-choice-label">Download .eml only</span>
+            <span class="book-hua-choice-desc">Save the formatted template file — open it in any mail app when ready.</span>
+          </button>
+        </div>
+        <div class="book-hua-modal-actions">
+          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-choose-cancel">Cancel</button>
+        </div>
       </div>
-      <div class="book-hua-modal-actions" id="book-hua-modal-desktop-actions" hidden>
-        <button type="button" class="book-hua-modal-btn" id="book-hua-use-web">Use Outlook Web instead</button>
-        <button type="button" class="book-hua-modal-btn ghost" id="book-hua-modal-close-desktop">Done</button>
+
+      <div id="book-hua-view-web" hidden>
+        <h3 class="book-hua-modal-title">Paste the booking form</h3>
+        <p class="book-hua-modal-lead">Outlook on the web opened with subject <strong>HUA BOOKING</strong>. The bold booking form is on your clipboard — paste it into the body.</p>
+        <ol class="book-hua-modal-steps" id="book-hua-modal-steps">
+          <li>Click inside the empty email body in Outlook.</li>
+          <li>Press <strong>Cmd+V</strong> (Mac) or <strong>Ctrl+V</strong> (Windows) to paste the bold form table.</li>
+          <li>Known booking details from your calendar selection appear after each label — complete any empty rows.</li>
+        </ol>
+        <p class="book-hua-modal-note" id="book-hua-modal-copy-status"></p>
+        <div class="book-hua-modal-actions">
+          <button type="button" class="book-hua-modal-btn primary" id="book-hua-copy-again">Copy template again</button>
+          <button type="button" class="book-hua-modal-btn" id="book-hua-open-web">Open Outlook Web</button>
+          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-back-web">Back</button>
+          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-modal-close">Done</button>
+        </div>
+      </div>
+
+      <div id="book-hua-view-desktop" hidden>
+        <h3 class="book-hua-modal-title">Opening Outlook desktop</h3>
+        <p class="book-hua-modal-lead">Outlook desktop should open with subject <strong>HUA BOOKING</strong>. A formatted <strong>.eml</strong> file was also downloaded.</p>
+        <ol class="book-hua-modal-steps">
+          <li>If a compose window did not appear, open the downloaded <strong>.eml</strong> file from Downloads.</li>
+          <li>The .eml includes the full green/yellow Excel-style template.</li>
+        </ol>
+        <div class="book-hua-modal-actions">
+          <button type="button" class="book-hua-modal-btn" id="book-hua-redownload-eml">Download .eml again</button>
+          <button type="button" class="book-hua-modal-btn" id="book-hua-open-desktop">Open Outlook app</button>
+          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-back-desktop">Back</button>
+          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-modal-close-desktop">Done</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="app.js?v=20260530f"></script>
+  <script src="app.js?v=20260530g"></script>
 </body>
 </html>
