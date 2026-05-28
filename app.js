@@ -125,7 +125,7 @@
   const csvStatus = document.getElementById("csv-status");
   const mainDashboard = document.getElementById("main-dashboard");
 
-  const HUA_BOOKING_SUBJECT = "HUA Booking";
+  const HUA_BOOKING_SUBJECT = "HUA BOOKING";
 
   function loadJson(key, fallback) {
     try {
@@ -704,26 +704,80 @@
     }
   }
 
-  function showHuaBookingEmailHint(copied) {
-    if (sessionStorage.getItem("hua_booking_eml_hint")) return;
-    sessionStorage.setItem("hua_booking_eml_hint", "1");
+  function emptyArrivalRecord() {
+    return { leadId: "", guest: "", property: "", arrivalDate: "", nights: 0, resvType: "" };
+  }
+
+  /** Prefill from selected calendar day / single matching arrival when possible. */
+  function getBookingContextForBookHua() {
+    const empty = emptyArrivalRecord();
+    if (!selectedDay) return { arrival: empty, event: null };
+    const evs = eventsOnDate(selectedDay);
+    let event = null;
+    if (selectedEventId) event = evs.find((e) => e.id === selectedEventId) || null;
+    if (!event && evs.length === 1) event = evs[0];
+    if (!event && evs.length) event = evs[0];
+    if (!event) return { arrival: empty, event: null };
+    const eligible = arrivals.filter((a) => guestEligibleForEventOnDate(a, event.date));
+    const arrival = eligible.length ? eligible[0] : empty;
+    return { arrival, event };
+  }
+
+  function openOutlookComposeUrl(url) {
+    const a = document.createElement("a");
+    a.href = url;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function showBookHuaHint(copied, emlDownloaded) {
+    if (sessionStorage.getItem("hua_book_hua_hint")) return;
+    sessionStorage.setItem("hua_book_hua_hint", "1");
     let msg =
-      "A formatted HUA Booking file was downloaded (HUA-Booking….eml).\n\n" +
-      "Open it from your Downloads folder — it should open in Outlook with the green/yellow table layout and subject \"HUA Booking\".\n\n" +
-      "Add recipients, complete any blank fields, and send.";
+      "A new message should open in Outlook (app or web) with subject \"HUA BOOKING\" and the editable booking template.\n\n";
     if (copied) {
-      msg += "\n\nThe same formatted table was also copied to your clipboard (paste into an open message with Ctrl+V / Cmd+V if you prefer).";
+      msg +=
+        "For the green/yellow table layout, paste into the body with Cmd+V (Mac) or Ctrl+V (Windows).\n\n";
+    }
+    if (emlDownloaded) {
+      msg +=
+        "If nothing opened, use the downloaded HUA-Booking….eml file from Downloads — it opens as a draft in Outlook with full formatting.";
     }
     alert(msg);
+  }
+
+  async function openBookHuaCompose(arrival, event) {
+    const plainBody = buildHuaBookingEmailBody(arrival, event);
+    const html = buildHuaBookingEmailHtml(arrival, event);
+    const params = new URLSearchParams();
+    params.set("subject", HUA_BOOKING_SUBJECT);
+    params.set("body", plainBody);
+    const qs = params.toString();
+
+    const copied = await copyHuaBookingHtmlToClipboard(html);
+
+    openOutlookComposeUrl(`microsoft-outlook:compose?${qs}`);
+
+    const webCompose = window.open(
+      `https://outlook.office.com/mail/deeplink/compose?${qs}`,
+      "hua-outlook-compose",
+      "noopener,noreferrer"
+    );
+    if (!webCompose) {
+      openOutlookComposeUrl(`https://outlook.office.com/mail/deeplink/compose?${qs}`);
+    }
+
+    downloadHuaBookingEml(arrival, event);
+    showBookHuaHint(copied, true);
   }
 
   async function openHuaBookingEmail(arrival) {
     if (!arrival) return;
     const event = pickEventForBookingEmail(arrival);
-    const html = buildHuaBookingEmailHtml(arrival, event);
-    downloadHuaBookingEml(arrival, event);
-    const copied = await copyHuaBookingHtmlToClipboard(html);
-    showHuaBookingEmailHint(copied);
+    await openBookHuaCompose(arrival, event);
   }
 
   function escapeHtml(s) {
@@ -983,6 +1037,14 @@
   });
 
   applyTabView("dashboard");
+
+  const bookHuaBtn = document.getElementById("book-hua-btn");
+  if (bookHuaBtn) {
+    bookHuaBtn.addEventListener("click", () => {
+      const { arrival, event } = getBookingContextForBookHua();
+      void openBookHuaCompose(arrival, event);
+    });
+  }
 
   document.getElementById("pdf-input").addEventListener("change", async (e) => {
     const files = e.target.files;
