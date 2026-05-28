@@ -805,12 +805,14 @@
     const framesEl = document.getElementById("pdf-preview-frames");
     const heading = document.getElementById("pdf-preview-heading");
     const hint = document.getElementById("pdf-preview-hint");
+    const emptyEl = document.getElementById("pdf-preview-empty");
     if (!panel || !framesEl || !heading || !hint) return;
 
     const onDashboard = document.querySelector(".app")?.classList.contains("app--dashboard");
     if (!onDashboard) {
       revokePreviewUrls();
       panel.hidden = true;
+      if (emptyEl) emptyEl.hidden = true;
       return;
     }
 
@@ -820,16 +822,19 @@
 
     if (!selectedDay) {
       panel.hidden = true;
+      if (emptyEl) emptyEl.hidden = false;
       return;
     }
 
     const evs = eventsOnDate(selectedDay);
     if (!evs.length) {
       panel.hidden = true;
+      if (emptyEl) emptyEl.hidden = false;
       return;
     }
 
     panel.hidden = false;
+    if (emptyEl) emptyEl.hidden = true;
     heading.textContent =
       evs.length === 1
         ? `Flyer preview — ${evs[0].title}`

@@ -1,5 +1,5 @@
 ---
-description: HUA BOOKINGS workflow — plain-language requests, agent implements and commits, user publishes when needed
+description: HUA BOOKINGS workflow — plain-language requests, agent implements, commits, publishes via GitHub CLI
 alwaysApply: true
 ---
 
@@ -8,24 +8,32 @@ alwaysApply: true
 ## How we work
 
 - The user describes what they want in plain language (no git or terminal jargon required).
-- The agent implements changes in this repo, tests locally when relevant, and creates git commits when work is done.
-- The agent runs `git push` when credentials allow; if push fails with auth errors, give the user the exact one-line `git push` command to run in Cursor Terminal.
+- The agent implements changes, tests locally when relevant, and creates git commits when work is done.
+- **Publishing:** use **GitHub CLI (`gh`)** for push, PRs, and repo checks—not manual tokens when `gh` is available.
+
+## GitHub CLI (`gh`)
+
+Preferred commands:
+
+- Check auth: `gh auth status`
+- Wire git to gh (one-time): `gh auth setup-git`
+- Push: `git push origin main` (after `gh auth setup-git`) or `gh repo sync` where appropriate
+- Create PR: `gh pr create`
+- View repo: `gh repo view`
+
+If `gh` is not on PATH, try the user install at:
+`/Users/shahabmanafi/Downloads/gh_2.93.0_macOS_amd64/bin/gh`
+
+If auth fails, ask the user to run once in Terminal: `gh auth login` then `gh auth setup-git`.
 
 ## Publishing (GitHub Pages)
 
 - Live site: `https://shahabibii.github.io/HUA-BOOKINGS/`
-- Deploys from the **main** branch (root folder). Pushing **main** updates the public site in 1–2 minutes.
-- After pushing, remind the user to hard-refresh the browser (Cmd+Shift+R) if they still see old UI.
-
-## One-time GitHub setup (user)
-
-Choose one so push works from Terminal:
-
-1. **GitHub CLI (recommended):** Install from https://cli.github.com then run `gh auth login` and follow the browser sign-in.
-2. **Personal access token:** https://github.com/settings/tokens/new — check **repo**, use the token as the password when `git push` asks for a password (username: `shahabibii`).
+- Deploys from **main** (root). Pushing **main** updates the site in 1–2 minutes.
+- After push, remind user to hard-refresh (Cmd+Shift+R) if UI looks stale.
 
 ## Project notes
 
 - Static site: `index.html`, `styles.css`, `app.js` — no build step.
-- Local preview: `python3 -m http.server 8766` in this folder, then open http://localhost:8766/
-- CSV/PDF uploads stay in the browser only (localStorage), not on GitHub.
+- Local preview: `python3 -m http.server 8766` → http://localhost:8766/
+- CSV/PDF data stays in the browser only (localStorage), not on GitHub.
