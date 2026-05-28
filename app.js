@@ -893,41 +893,54 @@
 
   let lastBookHuaHtml = "";
   let lastBookHuaPlain = "";
-  let outlookWebComposeOpened = false;
+  let outlookWebWindow = null;
+  let lastOutlookWebOpenAt = 0;
+  let bookHuaComposeInFlight = false;
 
-  const OUTLOOK_DESKTOP_PROBE_MS = 1200;
+  const OUTLOOK_PREF_KEY = "hua_outlook_client";
+
+  function getOutlookPref() {
+    const pref = localStorage.getItem(OUTLOOK_PREF_KEY);
+    return pref === "desktop" || pref === "web" ? pref : null;
+  }
+
+  function setOutlookPref(mode) {
+    localStorage.setItem(OUTLOOK_PREF_KEY, mode);
+  }
 
   function triggerOutlookDesktopProtocol(subject) {
     const qs = new URLSearchParams({ subject }).toString();
-    const iframe = document.createElement("iframe");
-    iframe.setAttribute("aria-hidden", "true");
-    iframe.style.cssText = "display:none;width:0;height:0;border:0";
-    iframe.src = `ms-outlook:compose?${qs}`;
-    document.body.appendChild(iframe);
-    setTimeout(() => iframe.remove(), 3000);
+    const link = document.createElement("a");
+    link.href = `ms-outlook:compose?${qs}`;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
   }
 
-  /** Returns true when the OS likely handed off to Outlook desktop (blur/hidden tab). */
-  function probeOutlookDesktop(subject) {
-    return new Promise((resolve) => {
-      let settled = false;
-      const finish = (opened) => {
-        if (settled) return;
-        settled = true;
-        window.removeEventListener("blur", onBlur);
-        document.removeEventListener("visibilitychange", onVisibility);
-        clearTimeout(timer);
-        resolve(opened);
-      };
-      const onBlur = () => finish(true);
-      const onVisibility = () => {
-        if (document.hidden) finish(true);
-      };
-      window.addEventListener("blur", onBlur);
-      document.addEventListener("visibilitychange", onVisibility);
-      triggerOutlookDesktopProtocol(subject);
-      const timer = setTimeout(() => finish(false), OUTLOOK_DESKTOP_PROBE_MS);
-    });
+  function openOutlookWebComposeOnce() {
+    const qs = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT }).toString();
+    const url = `https://outlook.office.com/mail/deeplink/compose?${qs}`;
+    const now = Date.now();
+
+    if (outlookWebWindow && !outlookWebWindow.closed) {
+      try {
+        outlookWebWindow.location.href = url;
+      } catch {
+        /* cross-origin — focus existing tab */
+      }
+      outlookWebWindow.focus();
+      return outlookWebWindow;
+    }
+
+    if (now - lastOutlookWebOpenAt < 4000) {
+      return outlookWebWindow;
+    }
+
+    lastOutlookWebOpenAt = now;
+    outlookWebWindow = window.open(url, "hua-outlook-compose");
+    if (outlookWebWindow) outlookWebWindow.focus();
+    return outlookWebWindow;
   }
 
   async function copyHuaBookingHtmlToClipboard(html, plainBody) {
@@ -1008,7 +1021,7 @@
     if (footnote) {
       footnote.innerHTML = isDesktop
         ? "Need the web version instead? Click <strong>Use Outlook Web instead</strong> below."
-        : "Using the <strong>Outlook desktop app</strong>? Open the downloaded <strong>.eml</strong> file from Downloads — it includes the full green/yellow Excel-style template.";
+        : 'Using the <strong>Outlook desktop app</strong>? Open the downloaded <strong>.eml</strong> file, or click <button type="button" class="book-hua-inline-link" id="book-hua-pref-desktop">always use desktop Outlook</button>.';
     }
     if (webActions) webActions.hidden = isDesktop;
     if (desktopActions) desktopActions.hidden = !isDesktop;
@@ -1020,36 +1033,44 @@
     if (modal) modal.hidden = true;
   }
 
-  function openOutlookWebCompose() {
-    const qs = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT }).toString();
-    const url = `https://outlook.office.com/mail/deeplink/compose?${qs}`;
-    window.open(url, "hua-outlook-compose", "noopener,noreferrer");
-    outlookWebComposeOpened = true;
+  function preferOutlookDesktop() {
+    setOutlookPref("desktop");
+    triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT);
+    showBookHuaModal("desktop");
   }
 
   async function openBookHuaCompose(arrival, event) {
+    if (bookHuaComposeInFlight) return;
+    bookHuaComposeInFlight = true;
+
     const bookHuaBtn = document.getElementById("book-hua-btn");
     if (bookHuaBtn) bookHuaBtn.disabled = true;
+
+    const pref = getOutlookPref();
+    const useDesktop = pref === "desktop";
+    const plainBody = buildHuaBookingWebPlainBody(arrival, event);
+    const html = buildHuaBookingWebHtml(arrival, event);
+    lastBookHuaHtml = html;
+    lastBookHuaPlain = plainBody;
+
+    if (!useDesktop) {
+      openOutlookWebComposeOnce();
+      if (pref === null) setOutlookPref("web");
+    }
+
     try {
-      const plainBody = buildHuaBookingWebPlainBody(arrival, event);
-      const html = buildHuaBookingWebHtml(arrival, event);
-      lastBookHuaHtml = html;
-      lastBookHuaPlain = plainBody;
-      outlookWebComposeOpened = false;
-
       const copied = await copyHuaBookingHtmlToClipboard(html, plainBody);
-      const desktopOpened = await probeOutlookDesktop(HUA_BOOKING_SUBJECT);
-
       downloadHuaBookingEml(arrival, event);
 
-      if (desktopOpened) {
+      if (useDesktop) {
+        triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT);
         showBookHuaModal("desktop");
         return;
       }
 
-      openOutlookWebCompose();
       showBookHuaModal("web", copied);
     } finally {
+      bookHuaComposeInFlight = false;
       if (bookHuaBtn) bookHuaBtn.disabled = false;
     }
   }
@@ -1362,15 +1383,24 @@
     });
   }
   if (bookHuaOpenWeb) {
-    bookHuaOpenWeb.addEventListener("click", () => openOutlookWebCompose());
+    bookHuaOpenWeb.addEventListener("click", () => openOutlookWebComposeOnce());
   }
   const bookHuaUseWeb = document.getElementById("book-hua-use-web");
   if (bookHuaUseWeb) {
     bookHuaUseWeb.addEventListener("click", () => {
-      if (!outlookWebComposeOpened) openOutlookWebCompose();
+      setOutlookPref("web");
+      openOutlookWebComposeOnce();
       showBookHuaModal("web", Boolean(lastBookHuaHtml));
     });
   }
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.id === "book-hua-pref-desktop") {
+      event.preventDefault();
+      preferOutlookDesktop();
+    }
+  });
   const bookHuaModalCloseDesktop = document.getElementById("book-hua-modal-close-desktop");
   if (bookHuaModalCloseDesktop) {
     bookHuaModalCloseDesktop.addEventListener("click", () => hideBookHuaModal());

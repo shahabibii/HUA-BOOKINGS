@@ -656,6 +656,21 @@ body {
   line-height: 1.45;
 }
 
+.book-hua-inline-link {
+  display: inline;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--accent);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.book-hua-inline-link:hover {
+  color: var(--text);
+}
+
 .book-hua-modal-steps {
   margin: 0 0 0.85rem 1.1rem;
   padding: 0;
