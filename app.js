@@ -489,12 +489,54 @@
     return opps.length ? opps[0] : null;
   }
 
-  const HUA_BOOKING_LABEL_BG = "#c6efce";
-  const HUA_BOOKING_PAYMENT_BG = "#ffff00";
+  /** Label fill from Book1.xlsx (theme accent6 #4EA72E + tint ~0.8). */
+  const HUA_BOOKING_LABEL_BG = "#DCEDD5";
+  const HUA_BOOKING_PAYMENT_BG = "#FFFF00";
+  const BOOKING_CELL_BORDER = "1px solid #000000";
+  const BOOKING_FONT = "font-family:Calibri,Arial,sans-serif;font-size:11pt;";
 
-  function bookingFieldLine(label, value) {
-    const v = value != null && String(value).trim() !== "" ? ` ${String(value).trim()}` : "";
-    return `${label}:${v}`;
+  /** Rows inside the bold border on Book1.xlsx (B3:C26). */
+  const HUA_BOOKING_ROWS = [
+    { kind: "std", label: "LEAD NUMBER:", key: "leadNumber" },
+    { kind: "std", label: "EVENT DATE:", key: "eventDate" },
+    { kind: "std", label: "EVENT NAME:", key: "eventName" },
+    { kind: "std", label: "TOUR DATE:", key: "tourDate" },
+    { kind: "std", label: "TOUR TIME:", key: "tourTime" },
+    { kind: "std", label: "FIRST & LAST NAME:", key: "guestName" },
+    {
+      kind: "pair",
+      labels: ["TYPE OF TOUR", "(Owner – Pls note if Elite or Loyalty):"],
+      key: "tourType",
+    },
+    { kind: "std", label: "DECILE/LOYALTY:", key: "decileLoyalty" },
+    { kind: "std", label: "SPOKE TO:", key: "spokeTo" },
+    { kind: "std", label: "FULL RES. ARRIVAL DATE:", key: "arrivalDate" },
+    { kind: "std", label: "CELL NUMBER:", key: "cellNumber" },
+    { kind: "std", label: "EMAIL:", key: "email" },
+    { kind: "std", label: "MARRIED/SINGLE/COHAB:", key: "marriedStatus" },
+    {
+      kind: "pair",
+      labels: ["TOTAL NUMBER OF PEOPLE", "(please list adults & children):"],
+      key: "totalPeople",
+    },
+    { kind: "std", label: "TOTAL COST QUOTED TO GUEST:", key: "totalCost" },
+    { kind: "pay", label: "PAYMENT COLLECTED?", key: "paymentCollected" },
+    { kind: "std", label: "PROPERTY & ROOM NUMBER:", key: "property" },
+    { kind: "std", label: "FULL RES.CHECK OUT DATE:", key: "checkoutDate" },
+    { kind: "std", label: "ADDITIONAL GIFTING?:", key: "additionalGifting" },
+    { kind: "std", label: "SPECIAL OCCASION?:", key: "specialOccasion" },
+    { kind: "std", label: "ALLERGIES/ADA REQUEST:", key: "allergies" },
+    {
+      kind: "std",
+      label: "OTHER IMPORTANT COMMENTS:",
+      key: "otherComments",
+      labelBold: true,
+    },
+  ];
+
+  function bookingFieldValue(fields, key) {
+    const v = fields[key];
+    return v != null && String(v).trim() !== "" ? String(v).trim() : "";
   }
 
   /** Shared field values for plain text, HTML table, and .eml export. */
@@ -529,115 +571,114 @@
     };
   }
 
+  function bookingPlainLine(label, value) {
+    return `${label}\t${value}`;
+  }
+
   function buildHuaBookingEmailBody(arrival, event) {
     const f = getHuaBookingFields(arrival, event);
-    const lines = [
-      bookingFieldLine("LEAD NUMBER", f.leadNumber),
-      bookingFieldLine("EVENT DATE", f.eventDate),
-      bookingFieldLine("EVENT NAME", f.eventName),
-      bookingFieldLine("TOUR DATE", f.tourDate),
-      bookingFieldLine("TOUR TIME", f.tourTime),
-      bookingFieldLine("FIRST & LAST NAME", f.guestName),
-      bookingFieldLine("TYPE OF TOUR", f.tourType),
-      bookingFieldLine("(Owner – Pls note if Elite or Loyalty)", ""),
-      bookingFieldLine("DECILE/LOYALTY", f.decileLoyalty),
-      bookingFieldLine("SPOKE TO", f.spokeTo),
-      bookingFieldLine("FULL RES. ARRIVAL DATE", f.arrivalDate),
-      bookingFieldLine("CELL NUMBER", f.cellNumber),
-      bookingFieldLine("EMAIL", f.email),
-      bookingFieldLine("MARRIED/SINGLE/COHAB", f.marriedStatus),
-      "TOTAL NUMBER OF PEOPLE",
-      "(please list adults & children):",
-      bookingFieldLine("TOTAL COST QUOTED TO GUEST", f.totalCost),
-      bookingFieldLine("PAYMENT COLLECTED?", f.paymentCollected),
-      bookingFieldLine("PROPERTY & ROOM NUMBER", f.property),
-      bookingFieldLine("FULL RES.CHECK OUT DATE", f.checkoutDate),
-      bookingFieldLine("ADDITIONAL GIFTING?", f.additionalGifting),
-      bookingFieldLine("SPECIAL OCCASION?", f.specialOccasion),
-      bookingFieldLine("ALLERGIES/ADA REQUEST", f.allergies),
-      bookingFieldLine("OTHER IMPORTANT COMMENTS", f.otherComments),
-    ];
+    const lines = [];
+    for (const row of HUA_BOOKING_ROWS) {
+      if (row.kind === "std") {
+        lines.push(bookingPlainLine(row.label, bookingFieldValue(f, row.key)));
+      } else if (row.kind === "pair") {
+        lines.push(bookingPlainLine(row.labels[0], bookingFieldValue(f, row.key)));
+        lines.push(bookingPlainLine(row.labels[1], ""));
+      } else if (row.kind === "pay") {
+        lines.push(bookingPlainLine(row.label, bookingFieldValue(f, row.key)));
+      }
+    }
     return lines.join("\r\n");
   }
 
-  function bookingHtmlCell(text, kind) {
-    const isLabel = kind === "label";
-    const isPayment = kind === "payment-label" || kind === "payment-value";
-    const isCommentsLabel = kind === "comments-label";
-    let bg = "#ffffff";
-    if (isLabel && !isCommentsLabel) bg = HUA_BOOKING_LABEL_BG;
-    if (isPayment) bg = HUA_BOOKING_PAYMENT_BG;
-    const weight = isCommentsLabel ? "bold" : "normal";
-    const align =
-      isLabel || isCommentsLabel || kind === "payment-label" || kind === "payment-value"
-        ? "center"
-        : "left";
-    const pad = "7px 10px";
-    const border = "1px solid #000000";
-    const font = 'font-family:Calibri,Arial,sans-serif;font-size:11pt;';
+  function bookingHtmlTd(text, opts) {
+    const bg = opts.bg || "#ffffff";
+    const align = opts.align || "left";
+    const bold = opts.bold ? "bold" : "normal";
+    const width = opts.width || "";
+    const rowspan = opts.rowspan ? ` rowspan="${opts.rowspan}"` : "";
     return (
-      `<td style="${font}background:${bg};border:${border};padding:${pad};` +
-      `font-weight:${weight};text-align:${align};vertical-align:middle;` +
-      `${isLabel || isCommentsLabel ? "width:42%;" : "width:58%;min-height:24px;"}">` +
-      `${escapeHtml(text)}&nbsp;</td>`
+      `<td${rowspan} style="${BOOKING_FONT}background:${bg};border:${BOOKING_CELL_BORDER};` +
+      `padding:7px 10px;font-weight:${bold};text-align:${align};vertical-align:middle;` +
+      `${width}min-height:24px;">${escapeHtml(text)}&nbsp;</td>`
     );
   }
 
-  function bookingHtmlRow(label, value, rowKind) {
-    if (rowKind === "payment") {
-      return (
-        "<tr>" +
-        bookingHtmlCell(label, "payment-label") +
-        bookingHtmlCell(value, "payment-value") +
-        "</tr>"
-      );
-    }
-    if (rowKind === "comments") {
-      return (
-        "<tr>" +
-        bookingHtmlCell(label, "comments-label") +
-        bookingHtmlCell(value, "value") +
-        "</tr>"
-      );
-    }
+  function bookingHtmlStandardRow(label, value, labelBold) {
     return (
-      "<tr>" + bookingHtmlCell(label, "label") + bookingHtmlCell(value, "value") + "</tr>"
+      "<tr>" +
+      bookingHtmlTd(label, {
+        bg: HUA_BOOKING_LABEL_BG,
+        align: "center",
+        bold: labelBold,
+        width: "width:53%;",
+      }) +
+      bookingHtmlTd(value, { align: "left", width: "width:47%;" }) +
+      "</tr>"
     );
   }
 
-  /** HTML table matching the Excel/screenshot layout (green labels, yellow payment row). */
+  function bookingHtmlPairRows(label1, label2, value) {
+    return (
+      "<tr>" +
+      bookingHtmlTd(label1, {
+        bg: HUA_BOOKING_LABEL_BG,
+        align: "center",
+        width: "width:53%;",
+      }) +
+      bookingHtmlTd(value, { align: "left", width: "width:47%;", rowspan: 2 }) +
+      "</tr><tr>" +
+      bookingHtmlTd(label2, {
+        bg: HUA_BOOKING_LABEL_BG,
+        align: "center",
+        width: "width:53%;",
+      }) +
+      "</tr>"
+    );
+  }
+
+  function bookingHtmlPaymentRow(label, value) {
+    return (
+      "<tr>" +
+      bookingHtmlTd(label, {
+        bg: HUA_BOOKING_PAYMENT_BG,
+        align: "center",
+        width: "width:53%;",
+      }) +
+      bookingHtmlTd(value, { align: "left", width: "width:47%;" }) +
+      "</tr>"
+    );
+  }
+
+  /** HTML table matching Book1.xlsx (B3:C26): green labels, yellow payment label only, merged value cells. */
   function buildHuaBookingEmailHtml(arrival, event) {
     const f = getHuaBookingFields(arrival, event);
-    const rows = [
-      bookingHtmlRow("LEAD NUMBER:", f.leadNumber),
-      bookingHtmlRow("EVENT DATE:", f.eventDate),
-      bookingHtmlRow("EVENT NAME:", f.eventName),
-      bookingHtmlRow("TOUR DATE:", f.tourDate),
-      bookingHtmlRow("TOUR TIME:", f.tourTime),
-      bookingHtmlRow("FIRST & LAST NAME:", f.guestName),
-      bookingHtmlRow("TYPE OF TOUR", f.tourType),
-      bookingHtmlRow("(Owner – Pls note if Elite or Loyalty):", ""),
-      bookingHtmlRow("DECILE/LOYALTY:", f.decileLoyalty),
-      bookingHtmlRow("SPOKE TO:", f.spokeTo),
-      bookingHtmlRow("FULL RES. ARRIVAL DATE:", f.arrivalDate),
-      bookingHtmlRow("CELL NUMBER:", f.cellNumber),
-      bookingHtmlRow("EMAIL:", f.email),
-      bookingHtmlRow("MARRIED/SINGLE/COHAB:", f.marriedStatus),
-      bookingHtmlRow("TOTAL NUMBER OF PEOPLE", f.totalPeople),
-      bookingHtmlRow("(please list adults & children):", ""),
-      bookingHtmlRow("TOTAL COST QUOTED TO GUEST:", f.totalCost),
-      bookingHtmlRow("PAYMENT COLLECTED?", f.paymentCollected, "payment"),
-      bookingHtmlRow("PROPERTY & ROOM NUMBER:", f.property),
-      bookingHtmlRow("FULL RES.CHECK OUT DATE:", f.checkoutDate),
-      bookingHtmlRow("ADDITIONAL GIFTING?:", f.additionalGifting),
-      bookingHtmlRow("SPECIAL OCCASION?:", f.specialOccasion),
-      bookingHtmlRow("ALLERGIES/ADA REQUEST:", f.allergies),
-      bookingHtmlRow("OTHER IMPORTANT COMMENTS:", f.otherComments, "comments"),
-    ].join("");
+    const rows = [];
+    for (const row of HUA_BOOKING_ROWS) {
+      if (row.kind === "std") {
+        rows.push(
+          bookingHtmlStandardRow(
+            row.label,
+            bookingFieldValue(f, row.key),
+            !!row.labelBold
+          )
+        );
+      } else if (row.kind === "pair") {
+        rows.push(
+          bookingHtmlPairRows(
+            row.labels[0],
+            row.labels[1],
+            bookingFieldValue(f, row.key)
+          )
+        );
+      } else if (row.kind === "pay") {
+        rows.push(bookingHtmlPaymentRow(row.label, bookingFieldValue(f, row.key)));
+      }
+    }
     return (
       '<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="margin:0;padding:12px;">' +
-      '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;max-width:720px;">' +
-      rows +
+      '<table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;width:100%;max-width:640px;border:2px solid #000000;">' +
+      rows.join("") +
       "</table></body></html>"
     );
   }
