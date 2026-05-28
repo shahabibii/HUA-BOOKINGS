@@ -1,6 +1,12 @@
 (function () {
   "use strict";
 
+  /** Remove legacy arrivals table if cached HTML still includes it */
+  function removeLegacyArrivalsPanel() {
+    document.querySelectorAll("aside.side, .side").forEach((el) => el.remove());
+  }
+  removeLegacyArrivalsPanel();
+
   const STORAGE_EVENTS = "hua_bookings_events_v1";
   const STORAGE_ARRIVALS = "hua_bookings_arrivals_v1";
 
