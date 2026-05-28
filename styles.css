@@ -1,0 +1,1019 @@
+:root {
+  --bg: #0f1419;
+  --surface: #1a222d;
+  --surface2: #232d3b;
+  --border: #2d3a4d;
+  --text: #e8eef5;
+  --muted: #8b9bb0;
+  --accent: #3d9cf0;
+  --accent-dim: rgba(61, 156, 240, 0.15);
+  --event: #c47cff;
+  --event-dim: rgba(196, 124, 255, 0.2);
+  --success: #4ade80;
+  --radius: 10px;
+  --font: "DM Sans", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.app {
+  max-width: min(100%, 1720px);
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 2.5rem;
+}
+
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.top-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex: 1 1 auto;
+  min-width: min(100%, 280px);
+}
+
+/* Dashboard & Detailed: centered title + primary tabs; import tabs top-right */
+.app--dashboard .top,
+.app--detailed .top {
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  padding-top: 0.15rem;
+}
+
+.app--dashboard .top-hero,
+.app--detailed .top-hero {
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  text-align: center;
+}
+
+.app--dashboard .brand,
+.app--detailed .brand {
+  width: 100%;
+}
+
+.app--dashboard .brand h1,
+.app--detailed .brand h1 {
+  text-align: center;
+}
+
+.app--dashboard .tabs-primary,
+.app--detailed .tabs-primary {
+  margin-top: 0.65rem;
+}
+
+.app--dashboard .tabs-secondary,
+.app--detailed .tabs-secondary {
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 0;
+  opacity: 1;
+  z-index: 2;
+  max-width: calc(100% - 1rem);
+  justify-content: flex-end;
+}
+
+/* Flyers / CSV: title + primary tabs left, import tabs right */
+.app:not(.app--dashboard):not(.app--detailed) .top-hero {
+  flex: 1 1 auto;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  background: var(--surface);
+  padding: 0.25rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+}
+
+.tabs-secondary {
+  flex: 0 0 auto;
+}
+
+.tab {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.active {
+  background: var(--surface2);
+  color: var(--text);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.upload-panels {
+  margin-bottom: 1.5rem;
+}
+
+.upload-panels[hidden] {
+  display: none;
+}
+
+.panel {
+  display: none;
+  padding: 1rem 1.25rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.panel.active {
+  display: block;
+}
+
+.panel-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 0.35rem;
+}
+
+.clear-data-btn {
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.clear-data-btn:hover {
+  color: var(--text);
+  border-color: #8b5a5a;
+  background: rgba(139, 90, 90, 0.12);
+}
+
+.hint {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  max-width: 720px;
+}
+
+.hint code {
+  font-size: 0.8rem;
+  background: var(--bg);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  color: var(--accent);
+}
+
+.file-btn {
+  display: inline-flex;
+  cursor: pointer;
+}
+
+.file-btn input {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.file-btn span {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  background: var(--accent);
+  color: #0a1628;
+  font-weight: 600;
+  font-size: 0.875rem;
+  border-radius: 8px;
+  transition: filter 0.15s;
+}
+
+.file-btn:hover span {
+  filter: brightness(1.08);
+}
+
+.file-btn.secondary span {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.file-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.1rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.file-list li {
+  margin: 0.25rem 0;
+}
+
+.csv-status {
+  margin: 0.6rem 0 0;
+  font-size: 0.85rem;
+  color: var(--success);
+}
+
+.main {
+  display: grid;
+  /* Equal columns: calendar width stays fixed for the viewport even when the
+     opportunities list/filter text changes (e.g. after picking a date). */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* Ensure tab panels fully hide (display:grid on .main can override [hidden] in some cases). */
+#main-dashboard[hidden],
+#main-detailed[hidden] {
+  display: none !important;
+}
+
+.app--detailed #main-dashboard {
+  display: none !important;
+}
+
+.app--dashboard #main-detailed {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.calendar-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1rem 1.25rem;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.75rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.cal-header h2 {
+  margin: 0;
+  flex: 1;
+  min-width: 160px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.nav-btn {
+  font-family: inherit;
+  font-size: 1.25rem;
+  line-height: 1;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.nav-btn:hover {
+  background: var(--bg);
+}
+
+.nav-btn.ghost {
+  width: auto;
+  padding: 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-bottom: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  text-align: center;
+}
+
+.weekdays span {
+  display: block;
+  padding: 6px 4px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.day-cell {
+  aspect-ratio: 1;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: none;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--surface2);
+  padding: 6px 6px 4px;
+  box-sizing: border-box;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: border-color 0.15s, background 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.day-cell:hover:not(.outside) {
+  border-color: var(--border);
+}
+
+.day-cell.outside {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.day-cell.today {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+.day-cell.selected {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+}
+
+.day-cell.has-event {
+  box-shadow: inset 0 -3px 0 var(--event);
+}
+
+.day-num {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.day-events {
+  font-size: 0.65rem;
+  line-height: 1.2;
+  color: var(--muted);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  width: 100%;
+}
+
+.legend {
+  margin: 0.75rem 0 0;
+  font-size: 0.75rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.dot.event {
+  background: var(--event);
+}
+
+.pdf-preview-panel {
+  margin: 1rem 0 0;
+  padding: 0.85rem 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.pdf-preview-panel[hidden] {
+  display: none;
+}
+
+.app:not(.app--dashboard) .pdf-preview-panel {
+  display: none;
+}
+
+.pdf-preview-heading {
+  margin: 0 0 0.65rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.pdf-preview-frames {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.pdf-preview-item {
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.pdf-preview-caption {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  font-size: 0.78rem;
+  color: var(--text);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Canvas flyer (PDF.js) — no browser PDF chrome */
+.pdf-preview-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  padding: 0.45rem 0.65rem;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+}
+
+.pdf-preview-action {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pdf-preview-action:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.pdf-preview-sheet {
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+  max-height: min(72vh, 680px);
+  padding: 0.35rem;
+}
+
+.pdf-preview-canvas {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Fallback only if PDF.js fails */
+.pdf-preview-frame {
+  width: 100%;
+  height: min(520px, 62vh);
+  border: none;
+  display: block;
+  background: #2a2a2a;
+}
+
+.pdf-preview-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.side {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1rem 1.25rem;
+  min-height: 320px;
+}
+
+/* Fill the right column so its intrinsic width doesn’t resize the calendar column */
+.app--dashboard .side {
+  justify-self: stretch;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  --dash-arrival-thead: 2.65rem;
+  --dash-arrival-row: 2.35rem;
+  --dash-arrival-viewport: calc(var(--dash-arrival-thead) + 10 * var(--dash-arrival-row));
+  /* Total card height stays stable when switching days */
+  min-height: calc(11.5rem + var(--dash-arrival-viewport) + 2.75rem);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Stable vertical chrome: opportunities block doesn’t jump when the day/filter copy changes */
+.app--dashboard .side .side-head {
+  min-height: 11.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.app--dashboard .side .side-head h3 {
+  min-height: 3rem;
+  flex-shrink: 0;
+}
+
+.app--dashboard .side .count-line {
+  min-height: 1.45rem;
+  flex-shrink: 0;
+}
+
+.app--dashboard .side .filter-line {
+  min-height: 3.6rem;
+  flex-shrink: 0;
+}
+
+/* Keeps layout height whether “Clear date filter” is shown or not */
+.app--dashboard .side .dashboard-clear-row {
+  min-height: 1.9rem;
+  flex-shrink: 0;
+  margin: 0 0 0.25rem;
+}
+
+.app--dashboard .side .link-clear {
+  margin-bottom: 0;
+}
+
+.side-head h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.count-line {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.filter-line {
+  margin: 0.35rem 0 0.75rem;
+  font-size: 0.8rem;
+  color: var(--accent);
+  min-height: 1.2em;
+}
+
+.link-clear {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.link-clear:hover {
+  color: var(--text);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Dashboard: fixed viewport for the table — same height with 1 row or many rows */
+.app--dashboard .side .table-wrap {
+  width: 100%;
+  max-width: 100%;
+  --arrival-row: 2.35rem;
+  --arrival-thead: 2.65rem;
+  --arrival-viewport: calc(var(--arrival-thead) + 10 * var(--arrival-row));
+  min-height: var(--arrival-viewport);
+  max-height: var(--arrival-viewport);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app--dashboard .side .data-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface2);
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 0.5rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.data-table th {
+  background: var(--surface2);
+  color: var(--muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Arrivals tables: one line per cell; column width follows content (no stretched gaps) */
+table.arrivals-table {
+  width: max-content;
+  max-width: none;
+  table-layout: auto;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.76rem;
+}
+
+table.arrivals-table th,
+table.arrivals-table td {
+  white-space: nowrap;
+  vertical-align: middle;
+  padding: 0.32rem 0.42rem;
+  /* Tight gutters: only outer edge gets a bit more air */
+  box-sizing: border-box;
+}
+
+table.arrivals-table th:first-child,
+table.arrivals-table td:first-child {
+  padding-left: 0.45rem;
+}
+
+table.arrivals-table th:last-child,
+table.arrivals-table td:last-child {
+  padding-right: 0.45rem;
+}
+
+/* Dashboard only: table fills the scroll box — no empty strip after Type */
+.app--dashboard .side .arrivals-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.app--dashboard .side .arrivals-table th,
+.app--dashboard .side .arrivals-table td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Lead #, Guest, Property, Arrival, Nights, Type (wider lead/property; tighter arrival/type) */
+.app--dashboard .side .arrivals-table th:nth-child(1),
+.app--dashboard .side .arrivals-table td:nth-child(1) {
+  width: 15%;
+}
+
+.app--dashboard .side .arrivals-table th:nth-child(2),
+.app--dashboard .side .arrivals-table td:nth-child(2) {
+  width: 12%;
+}
+
+.app--dashboard .side .arrivals-table th:nth-child(3),
+.app--dashboard .side .arrivals-table td:nth-child(3) {
+  width: 36%;
+}
+
+.app--dashboard .side .arrivals-table th:nth-child(4),
+.app--dashboard .side .arrivals-table td:nth-child(4) {
+  width: 18%;
+}
+
+.app--dashboard .side .arrivals-table th:nth-child(5),
+.app--dashboard .side .arrivals-table td:nth-child(5) {
+  width: 8%;
+}
+
+.app--dashboard .side .arrivals-table th:nth-child(6),
+.app--dashboard .side .arrivals-table td:nth-child(6) {
+  width: 9%;
+}
+
+.app--dashboard .side .arrivals-table th:nth-child(7),
+.app--dashboard .side .arrivals-table td:nth-child(7) {
+  width: 10%;
+}
+
+.app--dashboard .side .arrivals-table th.col-email,
+.app--dashboard .side .arrivals-table td.col-email {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.empty-msg {
+  display: none;
+  margin: 0;
+  padding: 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.empty-msg.visible {
+  display: block;
+}
+
+/* —— Detailed tab: arrivals list + event opportunities —— */
+.detailed-layout {
+  display: grid;
+  grid-template-columns: auto minmax(280px, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .detailed-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.detailed-layout[hidden] {
+  display: none !important;
+}
+
+.detailed-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1rem 1rem 1.25rem;
+  min-height: 280px;
+}
+
+.detailed-col--list {
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.detailed-col--list .detailed-list-scroll {
+  width: max-content;
+  max-width: 100%;
+}
+
+.detailed-col--detail {
+  min-width: 0;
+  width: 100%;
+}
+
+.detailed-title {
+  margin: 0 0 0.35rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.detailed-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+  margin-bottom: 0.85rem;
+}
+
+.detailed-detail-actions .detailed-title--detail {
+  margin-bottom: 0;
+  flex: 1 1 auto;
+}
+
+.detailed-title--detail {
+  margin-bottom: 0.85rem;
+}
+
+.hua-email-btn {
+  appearance: none;
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: 0.28rem 0.45rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--accent);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.hua-email-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.hua-email-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hua-email-btn--primary {
+  font-size: 0.78rem;
+  padding: 0.42rem 0.75rem;
+}
+
+table.arrivals-table td.col-email {
+  text-align: center;
+}
+
+table.arrivals-table th.col-email {
+  text-align: center;
+}
+
+.detailed-list-scroll {
+  --arrival-row: 2.35rem;
+  --arrival-thead: 2.65rem;
+  max-height: calc(var(--arrival-thead) + 15 * var(--arrival-row));
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.detailed-arrivals-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface2);
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.detailed-arrivals-table th:nth-child(2),
+.detailed-arrivals-table td:nth-child(2) {
+  text-align: center;
+}
+
+tr.detailed-arrival-row {
+  cursor: pointer;
+}
+
+tr.detailed-arrival-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+tr.detailed-arrival-row.is-selected {
+  background: var(--accent-dim);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+tr.detailed-arrival-row:focus {
+  outline: none;
+}
+
+tr.detailed-arrival-row:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.detailed-placeholder {
+  margin: 0;
+  font-size: 0.88rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.detailed-events-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.detailed-event-item {
+  padding: 0.65rem 0.85rem;
+  margin-bottom: 0.5rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+}
+
+li.detailed-event-item[data-event-id] {
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+li.detailed-event-item[data-event-id]:hover {
+  border-color: var(--accent);
+}
+
+li.detailed-event-item.is-selected {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.detailed-event-item--empty {
+  color: var(--muted);
+  font-style: italic;
+  border-style: dashed;
+  cursor: default;
+}
+
+.detailed-flyer-panel {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.detailed-flyer-panel[hidden] {
+  display: none !important;
+}
+
+.detailed-flyer-sheet {
+  max-height: min(55vh, 520px);
+}

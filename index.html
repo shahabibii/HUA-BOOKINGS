@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HUA BOOKINGS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="top">
+      <div class="top-hero">
+        <div class="brand">
+          <h1>HUA BOOKINGS</h1>
+          <p class="subtitle" id="header-subtitle" hidden></p>
+        </div>
+        <nav class="tabs tabs-primary" role="tablist" aria-label="Main views">
+          <button type="button" class="tab active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
+          <button type="button" class="tab" data-tab="detailed" role="tab" aria-selected="false">Detailed</button>
+        </nav>
+      </div>
+      <nav class="tabs tabs-secondary" role="tablist" aria-label="Import data">
+        <button type="button" class="tab" data-tab="flyers" role="tab" aria-selected="false">Event Data</button>
+        <button type="button" class="tab" data-tab="arrivals" role="tab" aria-selected="false">Arrivals (CSV)</button>
+      </nav>
+    </header>
+
+    <section class="upload-panels" id="upload-panels" hidden>
+      <div class="panel active" id="panel-flyers" role="tabpanel">
+        <p class="hint">
+          Upload one or more PDFs. The <strong>file name</strong> should include the event date and name, for example:
+          <code>2026-03-15-Spring-Gala.pdf</code> or <code>03-15-2026_Beach-Cleanup.pdf</code>
+          Use <strong>Clear</strong> before re-uploading if you see duplicate events on the same day.
+        </p>
+        <div class="panel-row">
+          <label class="file-btn">
+            <input type="file" id="pdf-input" accept=".pdf,application/pdf" multiple />
+            <span>Choose PDF files</span>
+          </label>
+          <button type="button" class="clear-data-btn" id="clear-flyers">Clear</button>
+        </div>
+        <ul class="file-list" id="pdf-list"></ul>
+      </div>
+      <div class="panel" id="panel-arrivals" role="tabpanel" hidden>
+        <p class="hint">
+          Listing-style exports (e.g. <code>RES_LISTING_DETAIL</code>) should include:
+          <code>LEAD_ID</code>, <code>PROPERTY_DESC</code>, <code>ARRIVAL_DATE</code>, <code>NIGHTS</code>, <code>RESV_TYPE</code>.
+          Guest column: we use <code>GUEST_NAME2</code> when present; otherwise <code>GUEST_NAME</code> (most rows only have the latter).
+          Only <code>RESV_TYPE</code> values FIX, CLB, FCC, HGD, MAX, DRM, DFC, OW, OWU, DXT, OPD, DXP, MGV are loaded.
+          <strong>Clear</strong> removes loaded rows so you can import a fresh CSV.
+        </p>
+        <div class="panel-row">
+          <label class="file-btn secondary">
+            <input type="file" id="csv-input" accept=".csv,text/csv" />
+            <span>Choose CSV file</span>
+          </label>
+          <button type="button" class="clear-data-btn" id="clear-arrivals">Clear</button>
+        </div>
+        <p class="csv-status" id="csv-status"></p>
+      </div>
+    </section>
+
+    <main class="main" id="main-dashboard">
+      <section class="calendar-section" aria-label="Calendar">
+        <div class="cal-header">
+          <button type="button" class="nav-btn" id="prev-month" aria-label="Previous month">‹</button>
+          <h2 id="month-label"></h2>
+          <button type="button" class="nav-btn" id="next-month" aria-label="Next month">›</button>
+          <button type="button" class="nav-btn ghost" id="today-btn">Today</button>
+        </div>
+        <div class="weekdays">
+          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+        </div>
+        <div class="grid" id="calendar-grid"></div>
+        <p class="legend"><span class="dot event"></span> Event day</p>
+        <div class="pdf-preview-panel" id="pdf-preview-panel" hidden>
+          <h4 class="pdf-preview-heading" id="pdf-preview-heading"></h4>
+          <div class="pdf-preview-frames" id="pdf-preview-frames"></div>
+          <p class="pdf-preview-hint" id="pdf-preview-hint" hidden>
+            Flyer metadata is saved, but the PDF file is only stored in this browser after you upload it here. Re-upload under <strong>Event Data</strong> to enable preview.
+          </p>
+        </div>
+      </section>
+
+      <aside class="side" aria-label="Arrivals for month">
+        <div class="side-head">
+          <h3 id="side-title">Arrivals</h3>
+          <p class="count-line" id="arrival-count"></p>
+          <p class="filter-line" id="filter-line"></p>
+          <div class="dashboard-clear-row">
+            <button type="button" class="link-clear" id="clear-filter" hidden>Clear date filter</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table arrivals-table">
+            <thead>
+              <tr>
+                <th>Lead #</th>
+                <th>Guest</th>
+                <th>Property</th>
+                <th>Arrival</th>
+                <th>Nights</th>
+                <th>Type</th>
+                <th class="col-email" aria-label="Email">Email</th>
+              </tr>
+            </thead>
+            <tbody id="arrivals-body"></tbody>
+          </table>
+        </div>
+        <p class="empty-msg" id="empty-arrivals">No arrival data yet. Upload a CSV under the Arrivals tab.</p>
+      </aside>
+    </main>
+
+    <section class="detailed-layout" id="main-detailed" hidden aria-label="Detailed arrivals and opportunities">
+      <div class="detailed-col detailed-col--list">
+        <div class="detailed-list-head">
+          <h2 class="detailed-title">Arrivals</h2>
+        </div>
+        <div class="detailed-list-scroll table-wrap">
+          <table class="data-table detailed-arrivals-table arrivals-table">
+            <thead>
+              <tr>
+                <th>Lead #</th>
+                <th>Guest</th>
+                <th>Property</th>
+                <th>Arrival</th>
+                <th>Nights</th>
+                <th>Type</th>
+                <th class="col-email" aria-label="Email">Email</th>
+              </tr>
+            </thead>
+            <tbody id="detailed-arrivals-body"></tbody>
+          </table>
+        </div>
+        <p class="empty-msg" id="empty-detailed-arrivals">No arrival data yet. Upload a CSV under the Arrivals tab.</p>
+      </div>
+      <div class="detailed-col detailed-col--detail" aria-label="Event opportunities">
+        <div class="detailed-detail-actions">
+          <h2 class="detailed-title detailed-title--detail">Event opportunities</h2>
+          <button type="button" class="hua-email-btn hua-email-btn--primary" id="detailed-booking-email" hidden>
+            HUA Booking email
+          </button>
+        </div>
+        <div class="detailed-events-wrap" id="detailed-events-wrap">
+          <ul class="detailed-events-list" id="detailed-events-list" hidden></ul>
+          <p class="detailed-placeholder" id="detailed-placeholder">Select an arrival on the left.</p>
+        </div>
+        <div class="detailed-flyer-panel" id="detailed-flyer-panel" hidden>
+          <p class="pdf-preview-caption" id="detailed-flyer-caption"></p>
+          <div class="pdf-preview-toolbar" id="detailed-flyer-toolbar"></div>
+          <div class="pdf-preview-sheet detailed-flyer-sheet" id="detailed-flyer-sheet"></div>
+          <p class="pdf-preview-hint" id="detailed-flyer-hint" hidden>
+            Flyer metadata is saved, but the PDF is only in this browser after you upload it under <strong>Event Data</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

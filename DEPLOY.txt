@@ -1,0 +1,43 @@
+GitHub + GitHub Pages (HUA BOOKINGS)
+====================================
+
+Prerequisites: Git installed (https://git-scm.com), GitHub account (https://github.com).
+
+1) Create a new repository on GitHub
+   - https://github.com/new
+   - Name it (e.g. hua-bookings). Leave empty (no README) if you will push from your computer first.
+   - Create repository.
+
+2) On your Mac, in Terminal, run (replace USERNAME and REPO):
+
+   cd "/Users/shahabmanafi/Desktop/Cursor Projects/HUA-BOOKINGS"
+   git init
+   git add .
+   git commit -m "Initial HUA BOOKINGS site"
+   git branch -M main
+   git remote add origin https://github.com/USERNAME/REPO.git
+   git push -u origin main
+
+   GitHub may ask you to sign in. Use a Personal Access Token as the password when using HTTPS,
+   or set up SSH keys: https://docs.github.com/en/authentication
+
+3) Turn on GitHub Pages
+   - Open the repo on GitHub → Settings → Pages (left sidebar).
+   - Under "Build and deployment" → Source: Deploy from a branch.
+   - Branch: main, folder: / (root) → Save.
+
+4) Wait about one minute. Your site will be:
+
+   https://USERNAME.github.io/REPO/
+
+   (Exact URL is also shown on the Settings → Pages screen.)
+
+5) This folder includes a .nojekyll file so GitHub Pages serves plain HTML/CSS/JS without Jekyll.
+
+Notes
+-----
+- This project is a copy of event-arrival-platform, rebranded as HUA BOOKINGS. Future work happens here.
+- The original project folder is unchanged: event-arrival-platform
+- Updates: change files locally, then: git add . && git commit -m "Update" && git push
+- CSV/PDF data each person uploads stays in their browser only (localStorage), not in GitHub.
+- Browser storage keys are separate from the old site (hua_bookings_*), so data does not mix with event-arrival-platform.
