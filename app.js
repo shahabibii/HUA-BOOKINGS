@@ -32,17 +32,8 @@
   /** @type {string | null} event id when user clicked a day with event */
   let selectedEventId = null;
 
-  /** Index into sorted arrivals list for Detailed tab selection */
-  let detailedSelectedIndex = null;
-
-  /** Event id for Detailed tab flyer preview (below opportunities list) */
-  let detailedSelectedEventId = null;
-
   /** @type {string[]} object URLs for PDF iframes; revoke when refreshing */
   let previewObjectUrls = [];
-
-  /** Iframe blob URLs for Detailed tab flyer only */
-  let detailedFlyerObjectUrls = [];
 
   const PDF_DB_NAME = "hua_bookings_pdfs_v1";
   const PDF_STORE = "pdfs";
@@ -134,13 +125,6 @@
   const clearFilterBtn = document.getElementById("clear-filter");
   const tableWrap = document.querySelector("#main-dashboard .table-wrap");
   const mainDashboard = document.getElementById("main-dashboard");
-  const mainDetailed = document.getElementById("main-detailed");
-  const detailedArrivalsBody = document.getElementById("detailed-arrivals-body");
-  const emptyDetailedArrivals = document.getElementById("empty-detailed-arrivals");
-  const detailedEventsList = document.getElementById("detailed-events-list");
-  const detailedPlaceholder = document.getElementById("detailed-placeholder");
-  const detailedListScroll = document.querySelector(".detailed-list-scroll");
-  const detailedBookingEmailBtn = document.getElementById("detailed-booking-email");
 
   const HUA_BOOKING_SUBJECT = "HUA Booking";
 
@@ -202,17 +186,6 @@
 
   function arrivalsEligibleForEventOnDate(eventDayIso) {
     return arrivals.filter((a) => guestEligibleForEventOnDate(a, eventDayIso));
-  }
-
-  /** All loaded arrivals sorted for stable list/detail views. */
-  function sortedArrivalsAll() {
-    return [...arrivals].sort((x, y) => {
-      const c = x.arrivalDate.localeCompare(y.arrivalDate);
-      if (c !== 0) return c;
-      return (x.guest || "").localeCompare(y.guest || "", undefined, {
-        sensitivity: "base",
-      });
-    });
   }
 
   /** Events (from flyers) where this arrival has an opportunity on that event date. */
@@ -572,134 +545,6 @@
     }
   }
 
-  function renderDetailedView() {
-    if (!detailedArrivalsBody || !mainDetailed) return;
-    if (mainDetailed.hidden) return;
-
-    const list = sortedArrivalsAll();
-    if (detailedSelectedIndex != null && detailedSelectedIndex >= list.length) {
-      detailedSelectedIndex = null;
-    }
-
-    const showEmpty = arrivals.length === 0;
-    if (emptyDetailedArrivals) {
-      emptyDetailedArrivals.classList.toggle("visible", showEmpty);
-    }
-    if (detailedListScroll) {
-      detailedListScroll.style.display = showEmpty ? "none" : "";
-    }
-
-    detailedArrivalsBody.innerHTML = "";
-    if (showEmpty) {
-      detailedSelectedEventId = null;
-      hideDetailedFlyerPanel();
-      if (detailedEventsList) {
-        detailedEventsList.hidden = true;
-        detailedEventsList.innerHTML = "";
-      }
-      if (detailedPlaceholder) {
-        detailedPlaceholder.hidden = false;
-        detailedPlaceholder.textContent =
-          "Upload a CSV under Arrivals (CSV) to browse guests here.";
-      }
-      return;
-    }
-
-    list.forEach((a, idx) => {
-      const tr = document.createElement("tr");
-      tr.className = "detailed-arrival-row";
-      if (idx === detailedSelectedIndex) tr.classList.add("is-selected");
-      tr.setAttribute("role", "button");
-      tr.tabIndex = 0;
-      tr.dataset.arrivalIndex = String(idx);
-      tr.innerHTML = `
-        <td>${escapeHtml(a.leadId)}</td>
-        <td>${escapeHtml(a.guest)}</td>
-        <td>${escapeHtml(a.property)}</td>
-        <td>${escapeHtml(formatDisplayDate(a.arrivalDate))}</td>
-        <td>${escapeHtml(String(a.nights))}</td>
-        <td>${escapeHtml(a.resvType || "")}</td>
-        <td class="col-email">${huaEmailButtonHtml(a)}</td>
-      `;
-      detailedArrivalsBody.appendChild(tr);
-    });
-
-    const selected = detailedSelectedIndex != null ? list[detailedSelectedIndex] : null;
-    if (detailedBookingEmailBtn) {
-      detailedBookingEmailBtn.hidden = !selected;
-      if (selected) {
-        detailedBookingEmailBtn.onclick = () => openHuaBookingEmail(selected);
-      } else {
-        detailedBookingEmailBtn.onclick = null;
-      }
-    }
-    if (detailedPlaceholder) {
-      detailedPlaceholder.hidden = !!selected;
-      if (!selected) {
-        detailedPlaceholder.textContent = "Select an arrival on the left.";
-      }
-    }
-    if (detailedEventsList) {
-      detailedEventsList.innerHTML = "";
-      if (!selected) {
-        detailedEventsList.hidden = true;
-        hideDetailedFlyerPanel();
-      } else {
-        const opps = eventOpportunitiesForArrival(selected);
-        detailedEventsList.hidden = false;
-        if (opps.length === 0) {
-          detailedSelectedEventId = null;
-          hideDetailedFlyerPanel();
-          const li = document.createElement("li");
-          li.className = "detailed-event-item detailed-event-item--empty";
-          li.textContent =
-            "No event opportunities for this stay (add PDFs under Event Data, or the stay may not overlap any event evening).";
-          detailedEventsList.appendChild(li);
-        } else {
-          for (const ev of opps) {
-            const li = document.createElement("li");
-            li.className = "detailed-event-item";
-            li.dataset.eventId = ev.id;
-            li.textContent = `${formatDisplayDate(ev.date)} — ${ev.title}`;
-            detailedEventsList.appendChild(li);
-          }
-          syncDetailedFlyerAfterOpportunityList(selected, opps);
-        }
-      }
-    }
-  }
-
-  function syncDetailedFlyerAfterOpportunityList(selected, opps) {
-    if (!selected || !opps.length || !detailedEventsList) {
-      hideDetailedFlyerPanel();
-      return;
-    }
-    if (!detailedSelectedEventId) {
-      hideDetailedFlyerPanel();
-      return;
-    }
-    const ev = opps.find((e) => e.id === detailedSelectedEventId);
-    if (!ev) {
-      detailedSelectedEventId = null;
-      hideDetailedFlyerPanel();
-      return;
-    }
-    detailedEventsList.querySelectorAll("li.detailed-event-item[data-event-id]").forEach((li) => {
-      li.classList.toggle("is-selected", li.dataset.eventId === detailedSelectedEventId);
-    });
-    void renderDetailedFlyerForEvent(ev);
-  }
-
-  function onDetailedArrivalPick(index) {
-    const list = sortedArrivalsAll();
-    if (index < 0 || index >= list.length) return;
-    if (detailedSelectedIndex !== index) {
-      detailedSelectedEventId = null;
-    }
-    detailedSelectedIndex = index;
-    renderDetailedView();
-  }
-
   function onArrivalTableEmailClick(e, tableEl) {
     const btn = e.target.closest(".hua-email-btn");
     if (!btn || !tableEl.contains(btn)) return false;
@@ -717,39 +562,6 @@
     });
   }
 
-  if (detailedArrivalsBody) {
-    detailedArrivalsBody.addEventListener("click", (e) => {
-      if (onArrivalTableEmailClick(e, detailedArrivalsBody)) return;
-      const tr = e.target.closest("tr.detailed-arrival-row");
-      if (!tr || !detailedArrivalsBody.contains(tr)) return;
-      const idx = parseInt(tr.dataset.arrivalIndex, 10);
-      if (Number.isFinite(idx)) onDetailedArrivalPick(idx);
-    });
-    detailedArrivalsBody.addEventListener("keydown", (e) => {
-      if (e.key !== "Enter" && e.key !== " ") return;
-      const tr = e.target.closest("tr.detailed-arrival-row");
-      if (!tr) return;
-      e.preventDefault();
-      const idx = parseInt(tr.dataset.arrivalIndex, 10);
-      if (Number.isFinite(idx)) onDetailedArrivalPick(idx);
-    });
-  }
-
-  if (detailedEventsList) {
-    detailedEventsList.addEventListener("click", (e) => {
-      const li = e.target.closest("li.detailed-event-item[data-event-id]");
-      if (!li || !detailedEventsList.contains(li)) return;
-      const id = li.dataset.eventId;
-      if (!id) return;
-      detailedSelectedEventId = id;
-      detailedEventsList.querySelectorAll("li.detailed-event-item[data-event-id]").forEach((el) => {
-        el.classList.toggle("is-selected", el.dataset.eventId === id);
-      });
-      const ev = events.find((x) => x.id === id);
-      if (ev) void renderDetailedFlyerForEvent(ev);
-    });
-  }
-
   function formatDisplayDate(iso) {
     const d = parseLocalDate(iso);
     return d.toLocaleDateString(undefined, {
@@ -764,7 +576,7 @@
     return arrivals.find((a) => a.leadId === leadId && a.arrivalDate === arrivalDate);
   }
 
-  /** Event context for booking email (calendar filter, detailed selection, or first overlap). */
+  /** Event context for booking email (calendar filter or first overlap). */
   function pickEventForBookingEmail(arrival) {
     if (selectedDay) {
       const dayEvents = eventsOnDate(selectedDay);
@@ -774,10 +586,6 @@
         if (picked) return picked;
       }
       if (dayEvents.length) return dayEvents[0];
-    }
-    if (detailedSelectedEventId) {
-      const ev = events.find((e) => e.id === detailedSelectedEventId);
-      if (ev && guestEligibleForEventOnDate(arrival, ev.date)) return ev;
     }
     const opps = eventOpportunitiesForArrival(arrival);
     return opps.length ? opps[0] : null;
@@ -1100,83 +908,6 @@
     item.appendChild(iframe);
   }
 
-  function revokeDetailedFlyerUrls() {
-    detailedFlyerObjectUrls.forEach((u) => URL.revokeObjectURL(u));
-    detailedFlyerObjectUrls = [];
-  }
-
-  function mountDetailedIframeFallback(blob, title, sheetEl) {
-    const url = URL.createObjectURL(blob);
-    detailedFlyerObjectUrls.push(url);
-    const iframe = document.createElement("iframe");
-    iframe.className = "pdf-preview-frame";
-    iframe.title = title;
-    iframe.src = `${url}#toolbar=0&navpanes=0&view=FitH`;
-    sheetEl.appendChild(iframe);
-  }
-
-  function hideDetailedFlyerPanel() {
-    revokeDetailedFlyerUrls();
-    const panel = document.getElementById("detailed-flyer-panel");
-    const sheet = document.getElementById("detailed-flyer-sheet");
-    const toolbar = document.getElementById("detailed-flyer-toolbar");
-    const caption = document.getElementById("detailed-flyer-caption");
-    const hint = document.getElementById("detailed-flyer-hint");
-    if (sheet) sheet.innerHTML = "";
-    if (toolbar) toolbar.innerHTML = "";
-    if (caption) caption.textContent = "";
-    if (hint) hint.hidden = true;
-    if (panel) panel.hidden = true;
-  }
-
-  async function renderDetailedFlyerForEvent(ev) {
-    const panel = document.getElementById("detailed-flyer-panel");
-    const sheet = document.getElementById("detailed-flyer-sheet");
-    const toolbar = document.getElementById("detailed-flyer-toolbar");
-    const caption = document.getElementById("detailed-flyer-caption");
-    const hint = document.getElementById("detailed-flyer-hint");
-    if (!panel || !sheet || !toolbar || !caption || !hint) return;
-
-    revokeDetailedFlyerUrls();
-    sheet.innerHTML = "";
-    toolbar.innerHTML = "";
-    caption.textContent = `${ev.title} · ${ev.fileName || "flyer.pdf"}`;
-    hint.hidden = true;
-    panel.hidden = false;
-
-    const btnOpen = document.createElement("button");
-    btnOpen.type = "button";
-    btnOpen.className = "pdf-preview-action";
-    btnOpen.textContent = "Open in new tab";
-    btnOpen.addEventListener("click", () => openFlyerInNewTab(ev));
-
-    const btnDl = document.createElement("button");
-    btnDl.type = "button";
-    btnDl.className = "pdf-preview-action";
-    btnDl.textContent = "Download PDF";
-    btnDl.addEventListener("click", () => downloadEventPdf(ev));
-
-    toolbar.appendChild(btnOpen);
-    toolbar.appendChild(btnDl);
-
-    let blob;
-    try {
-      blob = await getPdfBlob(ev.id);
-    } catch {
-      blob = undefined;
-    }
-    if (!blob || !blob.size) {
-      hint.hidden = false;
-      return;
-    }
-
-    await new Promise((r) => requestAnimationFrame(r));
-    const ok = await renderFlyerCanvasFromBlob(blob, sheet);
-    if (!ok) {
-      mountDetailedIframeFallback(blob, ev.fileName || "flyer.pdf", sheet);
-    }
-  }
-
   async function renderPdfPreview() {
     const panel = document.getElementById("pdf-preview-panel");
     const framesEl = document.getElementById("pdf-preview-frames");
@@ -1319,18 +1050,15 @@
     });
 
     const isDashboard = tabId === "dashboard";
-    const isDetailed = tabId === "detailed";
     const appEl = document.querySelector(".app");
     appEl?.classList.toggle("app--dashboard", isDashboard);
-    appEl?.classList.toggle("app--detailed", isDetailed);
 
-    if (uploadPanelsEl) uploadPanelsEl.hidden = isDashboard || isDetailed;
+    if (uploadPanelsEl) uploadPanelsEl.hidden = isDashboard;
 
     if (mainDashboard) mainDashboard.hidden = !isDashboard;
-    if (mainDetailed) mainDetailed.hidden = !isDetailed;
 
     if (headerSubtitle) {
-      if (tabId === "dashboard" || tabId === "detailed") {
+      if (tabId === "dashboard") {
         headerSubtitle.textContent = "";
         headerSubtitle.hidden = true;
       } else if (tabId === "flyers") {
@@ -1344,17 +1072,11 @@
       }
     }
 
-    if (!isDashboard && !isDetailed) {
+    if (!isDashboard) {
       document.getElementById("panel-flyers").classList.toggle("active", tabId === "flyers");
       document.getElementById("panel-flyers").hidden = tabId !== "flyers";
       document.getElementById("panel-arrivals").classList.toggle("active", tabId === "arrivals");
       document.getElementById("panel-arrivals").hidden = tabId !== "arrivals";
-    }
-
-    if (isDetailed) {
-      renderDetailedView();
-    } else {
-      hideDetailedFlyerPanel();
     }
 
     renderPdfPreview();
@@ -1399,7 +1121,6 @@
     renderPdfList();
     renderCalendar();
     renderArrivalsPanel();
-    renderDetailedView();
     renderPdfPreview();
     e.target.value = "";
     if (added < files.length && added === 0) {
@@ -1427,12 +1148,9 @@
     }
     selectedDay = null;
     selectedEventId = null;
-    detailedSelectedEventId = null;
     renderPdfList();
     renderCalendar();
     renderArrivalsPanel();
-    renderDetailedView();
-    hideDetailedFlyerPanel();
     renderPdfPreview();
   });
 
@@ -1443,13 +1161,9 @@
     }
     if (!confirm("Remove all loaded arrivals from this browser?")) return;
     arrivals = [];
-    detailedSelectedIndex = null;
-    detailedSelectedEventId = null;
     saveArrivals();
     if (csvStatus) csvStatus.textContent = "";
-    hideDetailedFlyerPanel();
     renderArrivalsPanel();
-    renderDetailedView();
     renderCalendar();
   });
 
@@ -1647,11 +1361,7 @@
           }
 
           csvStatus.textContent = parts.filter(Boolean).join(" ");
-          detailedSelectedIndex = null;
-          detailedSelectedEventId = null;
-          hideDetailedFlyerPanel();
           renderArrivalsPanel();
-          renderDetailedView();
           renderCalendar();
           e.target.value = "";
         },
