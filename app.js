@@ -562,30 +562,35 @@
 
   const WEB_BOOKING_FONT =
     "font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000000;";
-  const WEB_ROW_BORDER = "border-bottom:1px solid #d0d0d0;";
+  const WEB_ROW_BORDER =
+    "border-bottom:1pt solid #D0D0D0;mso-border-bottom-alt:solid #D0D0D0 0.75pt;";
 
   function buildHuaBookingWebPlainBody(arrival, event) {
     const f = getHuaBookingFields(arrival, event);
     return HUA_BOOKING_WEB_ROWS.map((row) => {
       const v = bookingFieldValue(f, row.key);
-      return v ? `${row.label}\t${v}` : row.label;
+      return v ? `${row.label} ${v}` : row.label;
     }).join("\r\n");
   }
 
   function bookingWebHtmlRow(label, value, isLast) {
-    const rowBorder = isLast ? "border-bottom:none;" : WEB_ROW_BORDER;
-    const labelStyle =
-      `${WEB_BOOKING_FONT}font-weight:bold;text-align:left;vertical-align:middle;` +
-      `padding:9px 12px;width:45%;${rowBorder}`;
-    const valueStyle =
-      `${WEB_BOOKING_FONT}font-weight:normal;text-align:left;vertical-align:middle;` +
-      `padding:9px 12px;width:55%;${rowBorder}`;
-    const valueHtml = value ? escapeHtml(value) : "&nbsp;";
-    return `<tr><td style="${labelStyle}">${escapeHtml(label)}</td><td style="${valueStyle}">${valueHtml}</td></tr>`;
+    const rowBorder = isLast ? "" : WEB_ROW_BORDER;
+    const labelHtml =
+      `<b><span style="font-size:11.0pt;font-family:Calibri,sans-serif;font-weight:bold;">` +
+      `${escapeHtml(label)}</span></b>`;
+    const valueHtml = value
+      ? `<span style="font-size:11.0pt;font-family:Calibri,sans-serif;font-weight:normal;">` +
+        ` ${escapeHtml(value)}</span>`
+      : "";
+    return (
+      `<tr>` +
+      `<td width="640" valign="top" style="padding:8pt 12pt;${rowBorder}${WEB_BOOKING_FONT}">` +
+      `<p style="margin:0;mso-line-height-rule:exactly;line-height:normal;">${labelHtml}${valueHtml}</p>` +
+      `</td></tr>`
+    );
   }
 
-  /** Black/white table for Outlook Web paste (matches booking form screenshot). */
-  function buildHuaBookingWebHtml(arrival, event) {
+  function buildHuaBookingWebTableFragment(arrival, event) {
     const f = getHuaBookingFields(arrival, event);
     const rows = HUA_BOOKING_WEB_ROWS.map((row, idx) =>
       bookingWebHtmlRow(
@@ -595,14 +600,95 @@
       )
     );
     return (
-      '<!DOCTYPE html><html><head><meta charset="UTF-8"></head>' +
-      '<body style="margin:0;padding:12px;background:#ffffff;">' +
-      '<table cellpadding="0" cellspacing="0" border="0" width="640" ' +
-      'style="border-collapse:collapse;width:100%;max-width:640px;border:2px solid #000000;' +
-      'mso-table-lspace:0;mso-table-rspace:0;">' +
+      `<table border="2" cellspacing="0" cellpadding="0" width="640" ` +
+      `style="border-collapse:collapse;width:640px;border:2pt solid #000000;` +
+      `mso-table-lspace:0pt;mso-table-rspace:0pt;mso-yfti-tbllook:1184;">` +
       rows.join("") +
-      "</table></body></html>"
+      `</table>`
     );
+  }
+
+  /** Black/white table for Outlook Web paste (matches booking form screenshot). */
+  function buildHuaBookingWebHtml(arrival, event) {
+    const fragment = buildHuaBookingWebTableFragment(arrival, event);
+    return (
+      "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">" +
+      "<meta name=\"Generator\" content=\"HUA Bookings\"></head>" +
+      "<body style=\"margin:0;padding:12px;background:#ffffff;\">" +
+      "<!--StartFragment-->" +
+      fragment +
+      "<!--EndFragment--></body></html>"
+    );
+  }
+
+  function wrapCfHtml(fragment) {
+    const htmlStart = "<html>\r\n<body>\r\n<!--StartFragment-->";
+    const htmlEnd = "<!--EndFragment-->\r\n</body>\r\n</html>";
+    const payload = htmlStart + fragment + htmlEnd;
+    const pad = (n) => String(n).padStart(10, "0");
+    const headerLen =
+      "Version:1.0\r\nStartHTML:0000000000\r\nEndHTML:0000000000\r\n" +
+      "StartFragment:0000000000\r\nEndFragment:0000000000\r\n".length;
+    const startHtml = headerLen;
+    const endHtml = headerLen + payload.length;
+    const startFragment =
+      headerLen + payload.indexOf("<!--StartFragment-->") + "<!--StartFragment-->".length;
+    const endFragment = headerLen + payload.indexOf("<!--EndFragment-->");
+    return (
+      "Version:1.0\r\n" +
+      `StartHTML:${pad(startHtml)}\r\n` +
+      `EndHTML:${pad(endHtml)}\r\n` +
+      `StartFragment:${pad(startFragment)}\r\n` +
+      `EndFragment:${pad(endFragment)}\r\n` +
+      payload
+    );
+  }
+
+  function extractHtmlFragment(htmlDoc) {
+    if (!htmlDoc.includes("<!--StartFragment-->")) return htmlDoc;
+    return htmlDoc.slice(
+      htmlDoc.indexOf("<!--StartFragment-->") + "<!--StartFragment-->".length,
+      htmlDoc.indexOf("<!--EndFragment-->")
+    );
+  }
+
+  function copyHtmlViaCopyEvent(htmlDoc, plainBody) {
+    return new Promise((resolve) => {
+      const onCopy = (event) => {
+        event.preventDefault();
+        event.clipboardData.setData("text/html", htmlDoc);
+        event.clipboardData.setData("text/plain", plainBody);
+      };
+      document.addEventListener("copy", onCopy);
+      const host = document.createElement("div");
+      host.contentEditable = "true";
+      host.style.position = "fixed";
+      host.style.left = "-9999px";
+      host.style.top = "0";
+      host.innerHTML = extractHtmlFragment(htmlDoc);
+      document.body.appendChild(host);
+      const range = document.createRange();
+      range.selectNodeContents(host);
+      const sel = window.getSelection();
+      if (!sel) {
+        document.body.removeChild(host);
+        document.removeEventListener("copy", onCopy);
+        resolve(false);
+        return;
+      }
+      sel.removeAllRanges();
+      sel.addRange(range);
+      let ok = false;
+      try {
+        ok = document.execCommand("copy");
+      } catch {
+        ok = false;
+      }
+      sel.removeAllRanges();
+      document.body.removeChild(host);
+      document.removeEventListener("copy", onCopy);
+      resolve(ok);
+    });
   }
 
   function bookingFieldValue(fields, key) {
@@ -809,22 +895,33 @@
   let lastBookHuaPlain = "";
 
   async function copyHuaBookingHtmlToClipboard(html, plainBody) {
-    if (!navigator.clipboard || typeof ClipboardItem === "undefined") return false;
-    try {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          "text/html": new Blob([html], { type: "text/html" }),
-          "text/plain": new Blob([plainBody], { type: "text/plain" }),
-        }),
-      ]);
-      return true;
-    } catch {
+    const fragment = extractHtmlFragment(html);
+    const cfHtml = wrapCfHtml(fragment);
+
+    const copiedViaEvent = await copyHtmlViaCopyEvent(html, plainBody);
+    if (copiedViaEvent) return true;
+
+    if (navigator.clipboard && typeof ClipboardItem !== "undefined") {
       try {
-        await navigator.clipboard.writeText(plainBody);
-        return false;
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            "text/html": new Blob([cfHtml], { type: "text/html" }),
+            "text/plain": new Blob([plainBody], { type: "text/plain" }),
+          }),
+        ]);
+        return true;
       } catch {
-        return false;
+        /* fall through */
       }
+    }
+
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(plainBody);
+      }
+      return false;
+    } catch {
+      return false;
     }
   }
 
@@ -845,10 +942,8 @@
     if (modal) modal.hidden = true;
   }
 
-  function openOutlookWebCompose(plainBody) {
-    const params = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT });
-    if (plainBody) params.set("body", plainBody);
-    const qs = params.toString();
+  function openOutlookWebCompose() {
+    const qs = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT }).toString();
     const webCompose = window.open(
       `https://outlook.office.com/mail/deeplink/compose?${qs}`,
       "hua-outlook-compose",
@@ -870,7 +965,7 @@
 
     openOutlookComposeUrl(`microsoft-outlook:compose?${subjectQs}`);
 
-    openOutlookWebCompose(plainBody);
+    openOutlookWebCompose();
 
     downloadHuaBookingEml(arrival, event);
     showBookHuaModal(copied);
@@ -1194,7 +1289,7 @@
     });
   }
   if (bookHuaOpenWeb) {
-    bookHuaOpenWeb.addEventListener("click", () => openOutlookWebCompose(lastBookHuaPlain));
+    bookHuaOpenWeb.addEventListener("click", () => openOutlookWebCompose());
   }
   if (bookHuaModalClose) {
     bookHuaModalClose.addEventListener("click", () => hideBookHuaModal());
