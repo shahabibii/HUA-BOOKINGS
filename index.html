@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260531a" />
+  <link rel="stylesheet" href="styles.css?v=20260531b" />
 </head>
 <body>
   <div class="app">
@@ -26,14 +26,6 @@
         <button type="button" class="tab" data-tab="flyers" role="tab" aria-selected="false">Event Data</button>
         <button type="button" class="tab" data-tab="arrivals" role="tab" aria-selected="false">Arrivals (CSV)</button>
       </nav>
-      <div class="sp-sync-bar" id="sp-sync-bar" aria-live="polite">
-        <span class="sp-sync-status" id="sp-sync-status" data-state="idle"></span>
-        <div class="sp-sync-actions">
-          <button type="button" class="sp-sync-btn primary" id="sp-sign-in">Sign in with Microsoft</button>
-          <button type="button" class="sp-sync-btn" id="sp-refresh" hidden disabled>Refresh tickets</button>
-          <button type="button" class="sp-sync-btn ghost" id="sp-sign-out" hidden>Sign out</button>
-        </div>
-      </div>
     </header>
 
     <section class="upload-panels" id="upload-panels" hidden>
@@ -83,7 +75,7 @@
           <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
         </div>
         <div class="grid" id="calendar-grid"></div>
-        <p class="legend"><span class="dot event"></span> Event day · ticket counts from SharePoint when signed in</p>
+        <p class="legend"><span class="dot event"></span> Event day</p>
       </section>
 
       <aside class="flyer-preview-col" aria-label="Flyer preview">
@@ -161,9 +153,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
-  <script src="sharepoint-config.js?v=20260531a"></script>
-  <script src="sharepoint-tickets.js?v=20260531a"></script>
-  <script src="app.js?v=20260531a"></script>
+  <script src="app.js?v=20260531b"></script>
 </body>
 </html>

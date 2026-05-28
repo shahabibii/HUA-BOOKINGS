@@ -1,6 +1,15 @@
-# SharePoint live tickets — one-time setup
+# SharePoint live tickets — setup notes
 
-The calendar reads event names and **Tickets Available** counts from two SharePoint Excel workbooks via **Microsoft Graph**. Each agent signs in with their normal HGV Microsoft work account.
+> **Current site:** The “Sign in with Microsoft” / Azure Graph integration is **disabled**.  
+> Ticket sync will use **Power Automate** (or manual Excel upload) when ready.
+
+## Power Automate path (recommended)
+
+See your IT/file owner for **Edit** permission on the guestlist workbooks, then build a flow that writes `data/tickets.json` to this repo. The site will load that file — no user sign-in required.
+
+## Azure app registration (optional, not used on site today)
+
+The steps below were for direct Microsoft Graph sign-in from the browser. Kept for reference if you switch approaches later.
 
 ## 1. Register an Azure AD app
 
