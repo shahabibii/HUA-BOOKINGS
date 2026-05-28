@@ -175,6 +175,83 @@ body {
   outline-offset: 2px;
 }
 
+.sp-sync-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  margin-top: 0.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface2);
+  box-sizing: border-box;
+}
+
+.sp-sync-status {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.35;
+  flex: 1;
+  min-width: 160px;
+}
+
+.sp-sync-status[data-state="loading"] {
+  color: var(--accent);
+}
+
+.sp-sync-status[data-state="error"] {
+  color: #f0a060;
+}
+
+.sp-sync-status[data-state="ok"] {
+  color: var(--text);
+}
+
+.sp-sync-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.sp-sync-btn {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.38rem 0.72rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.sp-sync-btn.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0a0e14;
+}
+
+.sp-sync-btn[hidden] {
+  display: none !important;
+}
+
+.sp-sync-btn.ghost {
+  background: transparent;
+  color: var(--muted);
+}
+
+.sp-sync-btn:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.sp-sync-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .upload-panels {
   margin-bottom: 1.5rem;
 }
@@ -440,11 +517,52 @@ body {
 
 .day-cell.has-event {
   box-shadow: inset 0 -3px 0 var(--event);
+  aspect-ratio: auto;
+  min-height: 4.75rem;
 }
 
 .day-num {
   font-size: 0.85rem;
   font-weight: 600;
+}
+
+.day-events-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: 100%;
+  min-width: 0;
+}
+
+.day-event-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  width: 100%;
+}
+
+.day-event-title {
+  font-size: 0.62rem;
+  line-height: 1.15;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.day-tickets {
+  font-size: 0.58rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.day-tickets.low {
+  color: #f0a060;
 }
 
 .day-events {

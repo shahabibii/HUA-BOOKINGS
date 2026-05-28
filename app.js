@@ -29,6 +29,8 @@
 
   /** @type {{ id: string, date: string, title: string, fileName: string }[]} */
   let events = loadJson(STORAGE_EVENTS, []);
+  /** @type {{ id: string, date: string, title: string, ticketsAvailable: number | null, sheetName: string, workbookId: string, updatedAt: string }[]} */
+  let sharepointEvents = [];
   /** @type {{ leadId: string, guest: string, property: string, arrivalDate: string, nights: number, resvType: string }[]} */
   let arrivals = loadJson(STORAGE_ARRIVALS, []);
 
@@ -183,9 +185,9 @@
     return true;
   }
 
-  /** Events (from flyers) where this arrival has an opportunity on that event date. */
+  /** Events (from flyers or SharePoint) where this arrival has an opportunity on that event date. */
   function eventOpportunitiesForArrival(arrival) {
-    return events
+    return allScheduleEvents()
       .filter((ev) => guestEligibleForEventOnDate(arrival, ev.date))
       .sort((a, b) => a.date.localeCompare(b.date));
   }
@@ -369,6 +371,61 @@
     return events.filter((e) => e.date === iso);
   }
 
+  function sharepointEventsOnDate(iso) {
+    return sharepointEvents.filter((e) => e.date === iso);
+  }
+
+  function normalizeEventTitle(title) {
+    return String(title || "")
+      .trim()
+      .toLowerCase();
+  }
+
+  function findPdfForSharePoint(spEvent) {
+    const pdfs = events.filter((e) => e.date === spEvent.date);
+    const exact = pdfs.find(
+      (p) => normalizeEventTitle(p.title) === normalizeEventTitle(spEvent.title)
+    );
+    if (exact) return exact;
+    if (pdfs.length === 1) return pdfs[0];
+    return null;
+  }
+
+  /** Merged calendar items: SharePoint events preferred; PDF flyers attached when matched. */
+  function calendarItemsOnDate(iso) {
+    const sp = sharepointEventsOnDate(iso);
+    if (sp.length) {
+      return sp.map((e) => ({
+        id: e.id,
+        date: e.date,
+        title: e.title,
+        ticketsAvailable: e.ticketsAvailable,
+        pdfEvent: findPdfForSharePoint(e),
+        source: "sharepoint",
+      }));
+    }
+    return eventsOnDate(iso).map((e) => ({
+      id: e.id,
+      date: e.date,
+      title: e.title,
+      ticketsAvailable: null,
+      pdfEvent: e,
+      source: "pdf",
+    }));
+  }
+
+  /** Events used for guest eligibility (SharePoint when loaded, else PDF uploads). */
+  function allScheduleEvents() {
+    if (sharepointEvents.length) {
+      return sharepointEvents.map((sp) => ({
+        id: sp.id,
+        date: sp.date,
+        title: sp.title,
+      }));
+    }
+    return events;
+  }
+
   function renderCalendar() {
     const y = viewDate.getFullYear();
     const m = viewDate.getMonth();
@@ -380,12 +437,6 @@
     const first = new Date(y, m, 1);
     const startPad = first.getDay();
     const daysInMonth = new Date(y, m + 1, 0).getDate();
-    const monthEvents = eventsForMonth(y, m);
-    const byDate = {};
-    for (const e of monthEvents) {
-      if (!byDate[e.date]) byDate[e.date] = [];
-      byDate[e.date].push(e);
-    }
 
     grid.innerHTML = "";
     const totalCells = startPad + daysInMonth;
@@ -422,8 +473,8 @@
       if (!outside && iso === todayIso) btn.classList.add("today");
       if (!outside && selectedDay === iso) btn.classList.add("selected");
 
-      const dayEvents = !outside && byDate[iso] ? byDate[iso] : [];
-      if (dayEvents.length) btn.classList.add("has-event");
+      const dayItems = !outside ? calendarItemsOnDate(iso) : [];
+      if (dayItems.length) btn.classList.add("has-event");
 
       const num = document.createElement("span");
       num.className = "day-num";
@@ -436,27 +487,44 @@
         : String(dayNum);
       btn.appendChild(num);
 
-      if (dayEvents.length && !outside) {
-        const ev = document.createElement("span");
-        ev.className = "day-events";
-        ev.textContent = dayEvents.map((x) => x.title).join(", ");
-        btn.appendChild(ev);
+      if (dayItems.length && !outside) {
+        const wrap = document.createElement("div");
+        wrap.className = "day-events-wrap";
+        const lowThreshold =
+          (window.HUA_SHAREPOINT_CONFIG && window.HUA_SHAREPOINT_CONFIG.lowTicketThreshold) || 10;
+        for (const item of dayItems) {
+          const block = document.createElement("div");
+          block.className = "day-event-block";
+          const titleEl = document.createElement("span");
+          titleEl.className = "day-event-title";
+          titleEl.textContent = item.title;
+          block.appendChild(titleEl);
+          if (item.ticketsAvailable != null) {
+            const ticketEl = document.createElement("span");
+            ticketEl.className = "day-tickets";
+            if (item.ticketsAvailable <= lowThreshold) ticketEl.classList.add("low");
+            ticketEl.textContent = `${item.ticketsAvailable} avail`;
+            block.appendChild(ticketEl);
+          }
+          wrap.appendChild(block);
+        }
+        btn.appendChild(wrap);
       }
 
       if (!outside) {
-        btn.addEventListener("click", () => onDayClick(iso, dayEvents));
+        btn.addEventListener("click", () => onDayClick(iso, dayItems));
       }
 
       grid.appendChild(btn);
     }
   }
 
-  function onDayClick(iso, dayEvents) {
+  function onDayClick(iso, dayItems) {
     selectedDay = iso;
-    if (dayEvents.length === 1) {
-      selectedEventId = dayEvents[0].id;
-    } else if (dayEvents.length > 1) {
-      selectedEventId = dayEvents[0].id;
+    if (dayItems.length === 1) {
+      selectedEventId = dayItems[0].id;
+    } else if (dayItems.length > 1) {
+      selectedEventId = dayItems[0].id;
     } else {
       selectedEventId = null;
     }
@@ -477,16 +545,32 @@
   /** Event context for booking email (calendar filter or first overlap). */
   function pickEventForBookingEmail(arrival) {
     if (selectedDay) {
-      const dayEvents = eventsOnDate(selectedDay);
-      if (dayEvents.length === 1) return dayEvents[0];
-      if (dayEvents.length > 1 && selectedEventId) {
-        const picked = dayEvents.find((e) => e.id === selectedEventId);
-        if (picked) return picked;
+      const dayItems = calendarItemsOnDate(selectedDay);
+      if (dayItems.length === 1) {
+        const it = dayItems[0];
+        return { id: it.id, date: it.date, title: it.title, fileName: it.pdfEvent?.fileName };
       }
-      if (dayEvents.length) return dayEvents[0];
+      if (dayItems.length > 1 && selectedEventId) {
+        const picked = dayItems.find((e) => e.id === selectedEventId);
+        if (picked) {
+          return {
+            id: picked.id,
+            date: picked.date,
+            title: picked.title,
+            fileName: picked.pdfEvent?.fileName,
+          };
+        }
+      }
+      if (dayItems.length) {
+        const it = dayItems[0];
+        return { id: it.id, date: it.date, title: it.title, fileName: it.pdfEvent?.fileName };
+      }
     }
     const opps = eventOpportunitiesForArrival(arrival);
-    return opps.length ? opps[0] : null;
+    if (!opps.length) return null;
+    const first = opps[0];
+    const pdf = events.find((e) => e.date === first.date && e.title === first.title);
+    return { id: first.id, date: first.date, title: first.title, fileName: pdf?.fileName };
   }
 
   /** Label fill from Book1.xlsx (theme accent6 #4EA72E + tint ~0.8). */
@@ -1026,11 +1110,27 @@
   function getBookingContextForBookHua() {
     const empty = emptyArrivalRecord();
     if (!selectedDay) return { arrival: empty, event: null };
-    const evs = eventsOnDate(selectedDay);
+    const dayItems = calendarItemsOnDate(selectedDay);
     let event = null;
-    if (selectedEventId) event = evs.find((e) => e.id === selectedEventId) || null;
-    if (!event && evs.length === 1) event = evs[0];
-    if (!event && evs.length) event = evs[0];
+    if (selectedEventId) {
+      const picked = dayItems.find((e) => e.id === selectedEventId);
+      if (picked) {
+        event = {
+          id: picked.id,
+          date: picked.date,
+          title: picked.title,
+          fileName: picked.pdfEvent?.fileName,
+        };
+      }
+    }
+    if (!event && dayItems.length === 1) {
+      const it = dayItems[0];
+      event = { id: it.id, date: it.date, title: it.title, fileName: it.pdfEvent?.fileName };
+    }
+    if (!event && dayItems.length) {
+      const it = dayItems[0];
+      event = { id: it.id, date: it.date, title: it.title, fileName: it.pdfEvent?.fileName };
+    }
     if (!event) return { arrival: empty, event: null };
     const eligible = arrivals.filter((a) => guestEligibleForEventOnDate(a, event.date));
     const arrival = eligible.length ? eligible[0] : empty;
@@ -1143,8 +1243,8 @@
       return;
     }
 
-    const evs = eventsOnDate(selectedDay);
-    if (!evs.length) {
+    const dayItems = calendarItemsOnDate(selectedDay);
+    if (!dayItems.length) {
       panel.hidden = true;
       if (emptyEl) emptyEl.hidden = false;
       return;
@@ -1153,12 +1253,14 @@
     panel.hidden = false;
     if (emptyEl) emptyEl.hidden = true;
     heading.textContent =
-      evs.length === 1
-        ? `Flyer preview — ${evs[0].title}`
-        : `Flyer previews (${evs.length}) — ${formatDisplayDate(selectedDay)}`;
+      dayItems.length === 1
+        ? `Flyer preview — ${dayItems[0].title}`
+        : `Flyer previews (${dayItems.length}) — ${formatDisplayDate(selectedDay)}`;
 
     let anyBlob = false;
-    for (const ev of evs) {
+    for (const item of dayItems) {
+      const ev = item.pdfEvent;
+      if (!ev) continue;
       let blob;
       try {
         blob = await getPdfBlob(ev.id);
@@ -1172,7 +1274,7 @@
 
       const cap = document.createElement("p");
       cap.className = "pdf-preview-caption";
-      cap.textContent = `${ev.title} · ${ev.fileName}`;
+      cap.textContent = `${item.title} · ${ev.fileName}`;
 
       const toolbar = document.createElement("div");
       toolbar.className = "pdf-preview-toolbar";
@@ -1658,4 +1760,83 @@
   renderPdfList();
   renderCalendar();
   renderPdfPreview();
+
+  function updateSharePointSyncUI(status) {
+    const statusEl = document.getElementById("sp-sync-status");
+    const signInBtn = document.getElementById("sp-sign-in");
+    const refreshBtn = document.getElementById("sp-refresh");
+    const signOutBtn = document.getElementById("sp-sign-out");
+    if (!statusEl) return;
+
+    let text = status.message || "";
+    if (status.lastUpdated instanceof Date) {
+      const t = status.lastUpdated.toLocaleTimeString(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      text = text ? `${text} · Updated ${t}` : `Updated ${t}`;
+    }
+    statusEl.textContent = text;
+    statusEl.dataset.state = status.state || "idle";
+
+    if (signInBtn) signInBtn.hidden = Boolean(status.signedIn);
+    if (signOutBtn) signOutBtn.hidden = !status.signedIn;
+    if (refreshBtn) {
+      refreshBtn.hidden = !status.signedIn;
+      refreshBtn.disabled = status.state === "loading" || !status.signedIn;
+    }
+  }
+
+  function initSharePointTickets() {
+    const sp = window.HuaSharePointTickets;
+    if (!sp) return;
+
+    sp.onUpdate((spEvents, status) => {
+      sharepointEvents = spEvents;
+      updateSharePointSyncUI(status);
+      renderCalendar();
+      renderPdfPreview();
+    });
+
+    const signInBtn = document.getElementById("sp-sign-in");
+    const refreshBtn = document.getElementById("sp-refresh");
+    const signOutBtn = document.getElementById("sp-sign-out");
+
+    if (signInBtn) {
+      signInBtn.addEventListener("click", () => {
+        signInBtn.disabled = true;
+        sp.signIn()
+          .catch((err) => {
+            updateSharePointSyncUI({
+              ...sp.getSyncStatus(),
+              state: "error",
+              message: err instanceof Error ? err.message : "Sign-in failed",
+            });
+          })
+          .finally(() => {
+            signInBtn.disabled = false;
+          });
+      });
+    }
+    if (refreshBtn) {
+      refreshBtn.addEventListener("click", () => {
+        refreshBtn.disabled = true;
+        sp.refresh()
+          .catch(() => {})
+          .finally(() => {
+            refreshBtn.disabled = false;
+          });
+      });
+    }
+    if (signOutBtn) {
+      signOutBtn.addEventListener("click", () => {
+        void sp.signOut();
+      });
+    }
+
+    sp.init();
+    updateSharePointSyncUI(sp.getSyncStatus());
+  }
+
+  initSharePointTickets();
 })();
