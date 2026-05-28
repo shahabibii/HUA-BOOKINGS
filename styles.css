@@ -273,6 +273,18 @@ body {
   display: none !important;
 }
 
+/* Arrivals table panel removed from dashboard; hide if cached HTML still includes it */
+.side,
+#empty-arrivals,
+#arrivals-body,
+.arrivals-table {
+  display: none !important;
+}
+
+.app--dashboard #upload-panels[hidden] {
+  display: none !important;
+}
+
 .calendar-section {
   background: var(--surface);
   border: 1px solid var(--border);

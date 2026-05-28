@@ -1,0 +1,31 @@
+---
+description: HUA BOOKINGS workflow — plain-language requests, agent implements and commits, user publishes when needed
+alwaysApply: true
+---
+
+# HUA BOOKINGS workflow
+
+## How we work
+
+- The user describes what they want in plain language (no git or terminal jargon required).
+- The agent implements changes in this repo, tests locally when relevant, and creates git commits when work is done.
+- The agent runs `git push` when credentials allow; if push fails with auth errors, give the user the exact one-line `git push` command to run in Cursor Terminal.
+
+## Publishing (GitHub Pages)
+
+- Live site: `https://shahabibii.github.io/HUA-BOOKINGS/`
+- Deploys from the **main** branch (root folder). Pushing **main** updates the public site in 1–2 minutes.
+- After pushing, remind the user to hard-refresh the browser (Cmd+Shift+R) if they still see old UI.
+
+## One-time GitHub setup (user)
+
+Choose one so push works from Terminal:
+
+1. **GitHub CLI (recommended):** Install from https://cli.github.com then run `gh auth login` and follow the browser sign-in.
+2. **Personal access token:** https://github.com/settings/tokens/new — check **repo**, use the token as the password when `git push` asks for a password (username: `shahabibii`).
+
+## Project notes
+
+- Static site: `index.html`, `styles.css`, `app.js` — no build step.
+- Local preview: `python3 -m http.server 8766` in this folder, then open http://localhost:8766/
+- CSV/PDF uploads stay in the browser only (localStorage), not on GitHub.
