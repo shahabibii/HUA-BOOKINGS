@@ -23,6 +23,7 @@ function walkPdfs(dir, relBase = "") {
     const rel = relBase ? `${relBase}/${name}` : name;
     const stat = fs.statSync(full);
     if (stat.isDirectory()) {
+      if (name.startsWith("_")) continue;
       files.push(...walkPdfs(full, rel));
       continue;
     }

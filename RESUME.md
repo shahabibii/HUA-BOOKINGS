@@ -56,6 +56,10 @@ Then open http://localhost:8766/ (trailing slash matters for asset paths).
 
 In `index.html`, uncomment the block labeled `Restore Event Data / Arrivals`.
 
+## Canceled events
+
+Edit `data/canceled-events.json` to hide an event from the calendar and ticket counts (even if SharePoint still has a tab). Move its PDF to `flyers/_canceled/` if it should not appear on the calendar.
+
 ## Common next steps
 
 - [ ] Add **Recurrence** trigger on Power Automate if not already set  

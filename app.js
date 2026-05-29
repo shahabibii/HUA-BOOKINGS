@@ -57,7 +57,8 @@
   const HOSTED_FLYERS_BASE = "flyers/";
   const FLYERS_CACHE_BUST = "20260531e";
   const TICKETS_MANIFEST = "data/tickets.json";
-  const TICKETS_CACHE_BUST = "20260529b";
+  const CANCELED_EVENTS_MANIFEST = "data/canceled-events.json";
+  const TICKETS_CACHE_BUST = "20260530f";
   const TICKETS_REFRESH_MS = 5 * 60 * 1000;
   const LOW_TICKET_THRESHOLD = 10;
 
@@ -219,6 +220,7 @@
     const map = new Map();
     for (const e of hostedEvents) map.set(eventKey(e), e);
     for (const e of localEvents) {
+      if (eventIsCanceled(e.date, e.title)) continue;
       if (!map.has(eventKey(e))) {
         map.set(eventKey(e), { ...e, source: e.source || "local" });
       }
@@ -304,6 +306,32 @@
     return null;
   }
 
+  /** @type {{ date: string, title: string, reason?: string }[]} */
+  let canceledEvents = [];
+
+  function eventIsCanceled(date, title) {
+    if (!date || !canceledEvents.length) return false;
+    const want = `${date}|${normalizeEventTitle(title).toLowerCase()}`;
+    return canceledEvents.some((c) => {
+      if (!c?.date) return false;
+      return `${c.date}|${normalizeEventTitle(c.title || "").toLowerCase()}` === want;
+    });
+  }
+
+  async function loadCanceledEvents() {
+    try {
+      const res = await fetch(assetUrl(`${CANCELED_EVENTS_MANIFEST}?v=${TICKETS_CACHE_BUST}`));
+      if (!res.ok) {
+        canceledEvents = [];
+        return;
+      }
+      const data = await res.json();
+      canceledEvents = Array.isArray(data?.events) ? data.events : [];
+    } catch {
+      canceledEvents = [];
+    }
+  }
+
   async function loadLiveTickets(options = {}) {
     try {
       const bust = options.cacheBust ? Date.now() : TICKETS_CACHE_BUST;
@@ -312,7 +340,7 @@
       const data = await res.json();
       const rows = Array.isArray(data?.events) ? data.events : [];
       ticketEvents = rows
-        .filter((t) => t && t.date && t.title)
+        .filter((t) => t && t.date && t.title && !eventIsCanceled(t.date, t.title))
         .map((t) => ({
           date: String(t.date),
           title: normalizeEventTitle(t.title),
@@ -377,6 +405,7 @@
           console.warn("Hosted flyer: could not parse date from", hostedFile);
           continue;
         }
+        if (eventIsCanceled(parsed.date, parsed.title)) continue;
         next.push({
           id: `hosted:${hostedFile}`,
           date: parsed.date,
@@ -1940,7 +1969,7 @@
   renderPdfList();
   renderCalendar();
   renderPdfPreview();
-  Promise.all([loadHostedFlyers(), loadLiveTickets()]).then(() => {
+  Promise.all([loadCanceledEvents(), loadHostedFlyers(), loadLiveTickets()]).then(() => {
     renderPdfList();
     renderCalendar();
     renderPdfPreview();

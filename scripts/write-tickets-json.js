@@ -5,6 +5,7 @@
  */
 const fs = require("fs");
 const path = require("path");
+const { filterCanceledEvents } = require("./canceled-events-util");
 
 const raw = process.env.TICKETS_PAYLOAD || "{}";
 let payload;
@@ -19,7 +20,7 @@ if (payload == null || typeof payload !== "object") {
 
 const out = {
   updatedAt: payload.updatedAt || new Date().toISOString(),
-  events: Array.isArray(payload.events) ? payload.events : [],
+  events: filterCanceledEvents(Array.isArray(payload.events) ? payload.events : []),
 };
 
 const outPath = path.join(__dirname, "..", "data", "tickets.json");
