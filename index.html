@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://outlook.office.com" crossorigin />
   <link rel="dns-prefetch" href="https://outlook.office.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260530q" />
+  <link rel="stylesheet" href="styles.css?v=20260530r" />
 </head>
 <body>
   <div class="app">
@@ -63,6 +63,14 @@
             </div>
           </h1>
           <p class="subtitle" id="header-subtitle" hidden></p>
+        </div>
+        <div class="hua-action-container">
+          <button type="button" class="nyx-btn" id="book-hua-btn">
+            <svg class="nyx-btn-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 2L2 12l10 10 10-10L12 2z" />
+            </svg>
+            BOOK HUA
+          </button>
         </div>
       </div>
       <!-- Restore Event Data / Arrivals: uncomment this block
@@ -116,21 +124,11 @@
 
     <main class="main dashboard-layout" id="main-dashboard">
       <section class="calendar-section" aria-label="Calendar">
-        <div class="calendar-top">
-          <div class="hua-action-container hua-action-container--calendar">
-            <button type="button" class="nyx-btn" id="book-hua-btn">
-              <svg class="nyx-btn-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M12 2L2 12l10 10 10-10L12 2z" />
-              </svg>
-              BOOK HUA
-            </button>
-          </div>
-          <div class="cal-header">
+        <div class="cal-header">
           <button type="button" class="nav-btn" id="prev-month" aria-label="Previous month">‹</button>
           <h2 id="month-label"></h2>
           <button type="button" class="nav-btn" id="next-month" aria-label="Next month">›</button>
           <button type="button" class="nav-btn ghost" id="today-btn">Today</button>
-          </div>
         </div>
         <div class="weekdays">
           <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
