@@ -3,7 +3,7 @@
 
   const NAV_ITEMS = [
     { id: "home", label: "HOME", segment: "" },
-    { id: "hua", label: "HUA", segment: "hua/" },
+    { id: "hua", label: "HUA", segment: "" },
     { id: "availability", label: "AVALIBILITY", segment: "availability/" },
   ];
 
@@ -17,9 +17,13 @@
 
   function currentNavId() {
     const path = location.pathname;
-    if (/\/hua(\/|$)/i.test(path)) return "hua";
     if (/\/availability(\/|$)/i.test(path)) return "availability";
     return "home";
+  }
+
+  function isNavItemActive(itemId, activeId) {
+    if (activeId === "home" && (itemId === "home" || itemId === "hua")) return true;
+    return itemId === activeId;
   }
 
   function initNyxMenu() {
@@ -37,7 +41,7 @@
       link.className = "nyx-menu-link";
       link.href = base + item.segment;
       link.textContent = item.label;
-      if (item.id === activeId) {
+      if (isNavItemActive(item.id, activeId)) {
         link.classList.add("is-active");
         link.setAttribute("aria-current", "page");
       }
