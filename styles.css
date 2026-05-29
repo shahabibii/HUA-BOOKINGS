@@ -79,8 +79,30 @@ body {
   width: 100%;
 }
 
-.app--dashboard .brand h1 {
+.app--dashboard .brand h1,
+.app--dashboard .brand-logo {
   text-align: center;
+}
+
+.brand-logo {
+  margin: 0;
+  line-height: 0;
+}
+
+.brand-logo img {
+  display: block;
+  height: auto;
+  width: auto;
+  max-height: 3.25rem;
+  max-width: min(100%, 14rem);
+  margin: 0 auto;
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .app--dashboard .tabs-primary {
@@ -106,13 +128,6 @@ body {
 /* Flyers / CSV: title + primary tabs left, import tabs right */
 .app:not(.app--dashboard) .top-hero {
   flex: 1 1 auto;
-}
-
-.brand h1 {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: 700;
-  letter-spacing: -0.02em;
 }
 
 .subtitle {
