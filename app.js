@@ -33,6 +33,12 @@
   let hostedEvents = [];
   /** Merged hosted + local (hosted wins when date + title match). */
   let events = [];
+  /** @type {{ date: string, title: string, ticketsAvailable: number | null, sheetName?: string, workbook?: string }[]} */
+  let ticketEvents = [];
+  /** eventKey → ticketsAvailable */
+  const ticketByKey = new Map();
+  /** @type {string | null} ISO timestamp from tickets.json */
+  let ticketsUpdatedAt = null;
   /** @type {{ leadId: string, guest: string, property: string, arrivalDate: string, nights: number, resvType: string }[]} */
   let arrivals = loadJson(STORAGE_ARRIVALS, []);
 
@@ -50,6 +56,9 @@
   const HOSTED_FLYERS_MANIFEST = "data/flyers.json";
   const HOSTED_FLYERS_BASE = "flyers/";
   const FLYERS_CACHE_BUST = "20260531e";
+  const TICKETS_MANIFEST = "data/tickets.json";
+  const TICKETS_CACHE_BUST = "20260529a";
+  const LOW_TICKET_THRESHOLD = 10;
 
   /** Resolve a site-relative path (works with or without trailing slash on GitHub Pages). */
   function assetUrl(relativePath) {
@@ -239,6 +248,95 @@
     if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || da < 1 || da > 31) return false;
     const d = new Date(y, mo - 1, da);
     return d.getFullYear() === y && d.getMonth() === mo - 1 && d.getDate() === da;
+  }
+
+  function normalizeForMatch(s) {
+    return String(s || "")
+      .toLowerCase()
+      .replace(/['’]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  function rebuildTicketIndex() {
+    ticketByKey.clear();
+    for (const t of ticketEvents) {
+      if (!t.date || t.ticketsAvailable == null) continue;
+      ticketByKey.set(eventKey(t), t.ticketsAvailable);
+    }
+  }
+
+  /** Match ticket row to a calendar event (date + title, with fuzzy fallback). */
+  function ticketsAvailableForEvent(ev) {
+    const exact = ticketByKey.get(eventKey(ev));
+    if (exact != null) return exact;
+
+    const want = normalizeForMatch(ev.title);
+    if (!want) return null;
+
+    const sameDay = ticketEvents.filter((t) => t.date === ev.date && t.ticketsAvailable != null);
+    for (const t of sameDay) {
+      const got = normalizeForMatch(t.title);
+      if (got === want || got.includes(want) || want.includes(got)) {
+        return t.ticketsAvailable;
+      }
+    }
+
+    if (sameDay.length === 1) {
+      const dayFlyers = events.filter((e) => e.date === ev.date);
+      if (dayFlyers.length === 1) return sameDay[0].ticketsAvailable;
+    }
+    return null;
+  }
+
+  async function loadLiveTickets() {
+    try {
+      const res = await fetch(assetUrl(`${TICKETS_MANIFEST}?v=${TICKETS_CACHE_BUST}`));
+      if (!res.ok) return;
+      const data = await res.json();
+      const rows = Array.isArray(data?.events) ? data.events : [];
+      ticketEvents = rows
+        .filter((t) => t && t.date && t.title)
+        .map((t) => ({
+          date: String(t.date),
+          title: normalizeEventTitle(t.title),
+          ticketsAvailable:
+            t.ticketsAvailable != null && t.ticketsAvailable !== ""
+              ? Number(t.ticketsAvailable)
+              : null,
+          sheetName: t.sheetName,
+          workbook: t.workbook,
+        }));
+      ticketsUpdatedAt = data.updatedAt ? String(data.updatedAt) : null;
+      rebuildTicketIndex();
+      updateTicketsLegend();
+    } catch (err) {
+      console.warn("Could not load live tickets:", err);
+    }
+  }
+
+  function updateTicketsLegend() {
+    const el = document.getElementById("tickets-legend");
+    if (!el) return;
+    if (!ticketEvents.length) {
+      el.hidden = true;
+      el.textContent = "";
+      return;
+    }
+    el.hidden = false;
+    let when = "";
+    if (ticketsUpdatedAt) {
+      const d = new Date(ticketsUpdatedAt);
+      if (!Number.isNaN(d.getTime())) {
+        when = ` · updated ${d.toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        })}`;
+      }
+    }
+    el.textContent = `${ticketEvents.length} live ticket count${ticketEvents.length === 1 ? "" : "s"} from SharePoint${when}`;
   }
 
   async function loadHostedFlyers() {
@@ -585,6 +683,14 @@
           titleEl.textContent = item.title;
           titleEl.title = item.title;
           block.appendChild(titleEl);
+          const tickets = ticketsAvailableForEvent(item);
+          if (tickets != null) {
+            const ticketEl = document.createElement("span");
+            ticketEl.className = "day-tickets";
+            if (tickets <= LOW_TICKET_THRESHOLD) ticketEl.classList.add("low");
+            ticketEl.textContent = `${tickets} avail`;
+            block.appendChild(ticketEl);
+          }
           wrap.appendChild(block);
         }
         btn.appendChild(wrap);
@@ -1791,7 +1897,7 @@
   renderPdfList();
   renderCalendar();
   renderPdfPreview();
-  loadHostedFlyers().then(() => {
+  Promise.all([loadHostedFlyers(), loadLiveTickets()]).then(() => {
     renderPdfList();
     renderCalendar();
     renderPdfPreview();

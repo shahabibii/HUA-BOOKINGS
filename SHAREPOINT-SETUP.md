@@ -5,7 +5,28 @@
 
 ## Power Automate path (recommended)
 
-See your IT/file owner for **Edit** permission on the guestlist workbooks, then build a flow that writes `data/tickets.json` to this repo. The site will load that file — no user sign-in required.
+Build a flow that reads May/June guestlist workbooks (read-only Office Script) and writes **`data/tickets.json`** to this repo. The site loads that file for live ticket counts — no user sign-in required.
+
+See [`scripts/office-script-get-ticket-events.ts`](../scripts/office-script-get-ticket-events.ts) and the flow steps in chat / IT docs.
+
+### `data/tickets.json` shape
+
+```json
+{
+  "updatedAt": "2026-05-29T12:00:00Z",
+  "events": [
+    {
+      "date": "2026-05-12",
+      "title": "Spring Gala",
+      "ticketsAvailable": 42,
+      "sheetName": "Spring Gala 5/12/26",
+      "workbook": "May"
+    }
+  ]
+}
+```
+
+Power Automate: after May + June **Append to array variable**, add **Compose** with `updatedAt` + `events`, then **GitHub → Create or update file** at `data/tickets.json`.
 
 ## Azure app registration (optional, not used on site today)
 

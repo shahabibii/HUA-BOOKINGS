@@ -573,6 +573,12 @@ body {
   box-shadow: inset 0 -2px 0 var(--event), inset 0 -5px 0 var(--event-alt);
 }
 
+.tickets-legend {
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--accent);
+}
+
 .flyer-preview-col {
   background: var(--surface);
   border: 1px solid var(--border);
