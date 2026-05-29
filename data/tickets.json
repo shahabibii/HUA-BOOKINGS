@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T21:22:35.4039577Z",
+  "updatedAt": "2026-05-29T21:28:33.5582957Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -193,7 +193,7 @@
     {
       "date": "2026-05-31",
       "sheetName": "05.31 Season's 52 W&D",
-      "ticketsAvailable": 2,
+      "ticketsAvailable": 0,
       "title": "Season's 52 W&D",
       "workbook": "May"
     },
