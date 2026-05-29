@@ -246,12 +246,24 @@
     return parts.join(" · ");
   }
 
-  function buildHuaBookingComposeParams() {
+  function buildHuaBookingComposeParams(options = {}) {
+    const includeCc = options.includeCc !== false;
     const params = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT });
     const { to, cc } = getHuaBookingRecipients();
     if (to.length) params.set("to", formatRecipientsForUrl(to));
-    if (cc.length) params.set("cc", formatRecipientsForUrl(cc));
+    if (includeCc && cc.length) params.set("cc", formatRecipientsForUrl(cc));
     return params;
+  }
+
+  /** Outlook Web deeplink does not reliably honor cc — use .eml or Copy Cc in the modal. */
+  function getOutlookWebComposeUrl() {
+    return `https://outlook.office.com/mail/deeplink/compose?${buildHuaBookingComposeParams({ includeCc: false }).toString()}`;
+  }
+
+  function getOutlookLegacyComposeUrl() {
+    const params = buildHuaBookingComposeParams({ includeCc: true });
+    params.set("path", "/mail/action/compose");
+    return `https://outlook.office.com/?${params.toString()}`;
   }
 
   function updateBookHuaRecipientsNote() {
@@ -1150,15 +1162,16 @@
     const boundary = "----=_HUA_Booking_" + Date.now();
     const { to, cc } = getHuaBookingRecipients();
     const headers = [
-      "MIME-Version: 1.0",
       "X-Unsent: 1",
+      "MIME-Version: 1.0",
+      "Date: " + new Date().toUTCString(),
       "Subject: " + subject,
     ];
     if (to.length) headers.push("To: " + formatRecipientsForEml(to));
     if (cc.length) headers.push("Cc: " + formatRecipientsForEml(cc));
     return [
       ...headers,
-      "Content-Type: multipart/alternative; boundary=\"" + boundary + "\"",
+      'Content-Type: multipart/alternative; boundary="' + boundary + '"',
       "",
       "--" + boundary,
       "Content-Type: text/plain; charset=UTF-8",
@@ -1174,7 +1187,7 @@
       "",
       "--" + boundary + "--",
       "",
-    ].join("\r\n");
+    ].join("\n");
   }
 
   function downloadHuaBookingEml(arrival, event) {
@@ -1203,11 +1216,12 @@
   let outlookWebWindow = null;
   let lastOutlookWebOpenAt = 0;
   function getOutlookComposeUrl() {
-    return `https://outlook.office.com/mail/deeplink/compose?${buildHuaBookingComposeParams().toString()}`;
+    const { cc } = getHuaBookingRecipients();
+    return cc.length ? getOutlookLegacyComposeUrl() : getOutlookWebComposeUrl();
   }
 
   function triggerOutlookDesktopProtocol() {
-    const qs = buildHuaBookingComposeParams().toString();
+    const qs = buildHuaBookingComposeParams({ includeCc: true }).toString();
     const link = document.createElement("a");
     link.href = `ms-outlook:compose?${qs}`;
     link.style.display = "none";
@@ -1272,6 +1286,69 @@
     }
   }
 
+  async function copyPlainTextToClipboard(text) {
+    if (!text) return false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      /* fall through */
+    }
+    const host = document.createElement("textarea");
+    host.value = text;
+    host.style.position = "fixed";
+    host.style.left = "-9999px";
+    document.body.appendChild(host);
+    host.select();
+    let ok = false;
+    try {
+      ok = document.execCommand("copy");
+    } catch {
+      ok = false;
+    }
+    document.body.removeChild(host);
+    return ok;
+  }
+
+  function updateBookHuaCcWebUi() {
+    const { cc } = getHuaBookingRecipients();
+    const hasCc = cc.length > 0;
+    const stepCc = document.getElementById("book-hua-step-cc");
+    const ccDisplay = document.getElementById("book-hua-cc-display");
+    const copyCcBtn = document.getElementById("book-hua-copy-cc");
+    const emlBackupNote = document.getElementById("book-hua-eml-backup-note");
+    if (stepCc) stepCc.hidden = !hasCc;
+    if (ccDisplay) ccDisplay.textContent = hasCc ? cc.join(", ") : "";
+    if (copyCcBtn) copyCcBtn.hidden = !hasCc;
+    if (emlBackupNote) {
+      emlBackupNote.hidden = !hasCc;
+      emlBackupNote.textContent = hasCc
+        ? "Outlook Web cannot prefill Cc from a link. A backup .eml was downloaded with To and Cc already set — open it from Downloads if Cc is missing."
+        : "";
+    }
+  }
+
+  function setBookHuaCcCopyStatus(message) {
+    const el = document.getElementById("book-hua-cc-status");
+    if (!el) return;
+    el.textContent = message;
+    el.hidden = !message;
+  }
+
+  async function copyBookingCcAddress() {
+    const { cc } = getHuaBookingRecipients();
+    if (!cc.length) return false;
+    const copied = await copyPlainTextToClipboard(cc.join("; "));
+    setBookHuaCcCopyStatus(
+      copied
+        ? "Cc copied — click the Cc field in Outlook and paste (Cmd+V / Ctrl+V)."
+        : "Could not copy Cc. Type: " + cc.join(", ")
+    );
+    return copied;
+  }
+
   function showBookHuaView(view, copied) {
     const modal = document.getElementById("book-hua-modal");
     const chooseView = document.getElementById("book-hua-view-choose");
@@ -1283,6 +1360,10 @@
     if (chooseView) chooseView.hidden = view !== "choose";
     if (webView) webView.hidden = view !== "web";
     if (desktopView) desktopView.hidden = view !== "desktop";
+
+    if (view === "web") {
+      updateBookHuaCcWebUi();
+    }
 
     if (view === "web" && status && copied !== undefined) {
       status.textContent = copied
@@ -1308,8 +1389,14 @@
 
   async function launchBookHuaWeb() {
     if (!pendingBookHua) return;
+    const { arrival, event } = pendingBookHua;
     const webBtn = document.getElementById("book-hua-choose-web");
     if (webBtn) webBtn.disabled = true;
+
+    const { cc } = getHuaBookingRecipients();
+    if (cc.length) {
+      downloadHuaBookingEml(arrival, event);
+    }
 
     openOutlookWebComposeOnce();
     showBookHuaView("web");
@@ -1321,9 +1408,12 @@
 
     const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, lastBookHuaPlain);
     if (status) {
+      const ccHint = cc.length
+        ? " Then use Copy Cc below for the Cc field (Outlook Web does not prefill Cc from the link)."
+        : "";
       status.textContent = copied
-        ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
-        : "Copy failed in this browser. Use Copy template again, or download the .eml file instead.";
+        ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)." + ccHint
+        : "Copy failed in this browser. Use Copy template again, or open the downloaded .eml file instead.";
     }
     if (webBtn) webBtn.disabled = false;
   }
@@ -1332,7 +1422,6 @@
     if (!pendingBookHua) return;
     const { arrival, event } = pendingBookHua;
     downloadHuaBookingEml(arrival, event);
-    triggerOutlookDesktopProtocol();
     showBookHuaView("desktop");
   }
 
@@ -1681,6 +1770,10 @@
       }
     });
   }
+  const bookHuaCopyCc = document.getElementById("book-hua-copy-cc");
+  if (bookHuaCopyCc) {
+    bookHuaCopyCc.addEventListener("click", () => void copyBookingCcAddress());
+  }
   if (bookHuaOpenWeb) {
     bookHuaOpenWeb.addEventListener("click", () => openOutlookWebComposeOnce());
   }
@@ -1688,7 +1781,6 @@
     bookHuaBackWeb.addEventListener("click", () => showBookHuaView("choose"));
   }
   const bookHuaRedownloadEml = document.getElementById("book-hua-redownload-eml");
-  const bookHuaOpenDesktop = document.getElementById("book-hua-open-desktop");
   const bookHuaBackDesktop = document.getElementById("book-hua-back-desktop");
   const bookHuaModalCloseDesktop = document.getElementById("book-hua-modal-close-desktop");
   if (bookHuaRedownloadEml) {
@@ -1696,9 +1788,6 @@
       if (!pendingBookHua) return;
       downloadHuaBookingEml(pendingBookHua.arrival, pendingBookHua.event);
     });
-  }
-  if (bookHuaOpenDesktop) {
-    bookHuaOpenDesktop.addEventListener("click", () => triggerOutlookDesktopProtocol());
   }
   if (bookHuaBackDesktop) {
     bookHuaBackDesktop.addEventListener("click", () => showBookHuaView("choose"));
