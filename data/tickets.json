@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T19:04:25.4618177Z",
+  "updatedAt": "2026-05-29T19:07:32.1938252Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -242,7 +242,7 @@
     {
       "date": "2026-06-09",
       "sheetName": "06.09 Morton's Casino",
-      "ticketsAvailable": 49,
+      "ticketsAvailable": 47,
       "title": "Morton's Casino",
       "workbook": "June"
     },
