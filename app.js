@@ -574,10 +574,19 @@
       btn.appendChild(num);
 
       if (dayEvents.length && !outside) {
-        const ev = document.createElement("span");
-        ev.className = "day-events";
-        ev.textContent = dayEvents.map((x) => x.title).join(", ");
-        btn.appendChild(ev);
+        const wrap = document.createElement("div");
+        wrap.className = "day-events-wrap";
+        for (const item of dayEvents) {
+          const block = document.createElement("div");
+          block.className = "day-event-block";
+          const titleEl = document.createElement("span");
+          titleEl.className = "day-event-title";
+          titleEl.textContent = item.title;
+          titleEl.title = item.title;
+          block.appendChild(titleEl);
+          wrap.appendChild(block);
+        }
+        btn.appendChild(wrap);
       }
 
       if (!outside) {
