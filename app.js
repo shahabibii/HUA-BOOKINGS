@@ -58,7 +58,7 @@
   const FLYERS_CACHE_BUST = "20260531e";
   const TICKETS_MANIFEST = "data/tickets.json";
   const CANCELED_EVENTS_MANIFEST = "data/canceled-events.json";
-  const TICKETS_CACHE_BUST = "20260530f";
+  const TICKETS_CACHE_BUST = "20260530g";
   const TICKETS_REFRESH_MS = 5 * 60 * 1000;
   const LOW_TICKET_THRESHOLD = 10;
 
