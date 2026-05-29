@@ -18,9 +18,8 @@
       "id": "tour-confirmation",
       "label": "TOUR CONFIRMATION",
       "subject": "Hilton Vacation Portfolio Review | VIP Discount Tickets",
-      "kind": "static",
-      "bodyPlain": "",
-      "bodyHtml": ""
+      "kind": "html-template",
+      "templateDir": "tour-confirmation"
     },
     {
       "id": "first-attempt",

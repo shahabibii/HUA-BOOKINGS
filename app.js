@@ -59,6 +59,7 @@
   const TICKETS_MANIFEST = "data/tickets.json";
   const BOOKING_RECIPIENTS_MANIFEST = "data/booking-recipients.json";
   const EMAIL_ACTIONS_MANIFEST = "data/email-actions.json";
+  const EMAIL_TEMPLATE_BASE = "assets/email-templates/";
   const CANCELED_EVENTS_MANIFEST = "data/canceled-events.json";
   const TICKETS_CACHE_BUST = "20260530g";
   const TICKETS_REFRESH_MS = 5 * 60 * 1000;
@@ -196,8 +197,11 @@
 
   const HUA_BOOKING_SUBJECT = "HUA BOOKING";
 
-  /** @type {{ id: string, label: string, subject: string, kind: string, bodyPlain?: string, bodyHtml?: string }[]} */
+  /** @type {{ id: string, label: string, subject: string, kind: string, bodyPlain?: string, bodyHtml?: string, templateDir?: string }[]} */
   let emailActions = [];
+
+  /** @type {Record<string, { html: string, plain: string }>} */
+  const emailTemplateCache = {};
 
   const DEFAULT_EMAIL_ACTIONS = [
     { id: "book-hua", label: "BOOK HUA", subject: HUA_BOOKING_SUBJECT, kind: "booking-form" },
@@ -248,6 +252,35 @@
     } catch {
       emailActions = DEFAULT_EMAIL_ACTIONS.slice();
     }
+  }
+
+  async function loadEmailTemplate(slug) {
+    if (!slug) return null;
+    if (emailTemplateCache[slug]) return emailTemplateCache[slug];
+    try {
+      const bust = TICKETS_CACHE_BUST;
+      const [htmlRes, plainRes] = await Promise.all([
+        fetch(assetUrl(`${EMAIL_TEMPLATE_BASE}${slug}/body.html?v=${bust}`)),
+        fetch(assetUrl(`${EMAIL_TEMPLATE_BASE}${slug}/body.plain.txt?v=${bust}`)),
+      ]);
+      if (!htmlRes.ok) return null;
+      let html = await htmlRes.text();
+      const plain = plainRes.ok ? await plainRes.text() : "";
+      const imageBase = assetUrl(`${EMAIL_TEMPLATE_BASE}${slug}/`);
+      html = html.replace(/src="images\//g, `src="${imageBase}images/`);
+      emailTemplateCache[slug] = { html, plain };
+      return emailTemplateCache[slug];
+    } catch (err) {
+      console.warn("Could not load email template:", slug, err);
+      return null;
+    }
+  }
+
+  async function preloadEmailTemplates() {
+    const slugs = emailActions
+      .filter((action) => action.kind === "html-template" && action.templateDir)
+      .map((action) => action.templateDir);
+    await Promise.all(slugs.map((slug) => loadEmailTemplate(slug)));
   }
 
   function getEmailAction(actionId) {
@@ -1170,6 +1203,20 @@
     );
   }
 
+  function wrapEmailClipboardHtml(htmlDoc) {
+    if (!htmlDoc) return wrapPlainEmailHtml("");
+    if (htmlDoc.includes("<!--StartFragment-->")) return htmlDoc;
+    const fragment = extractHtmlFragment(htmlDoc) || htmlDoc;
+    return (
+      "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">" +
+      "<meta name=\"Generator\" content=\"HUA Bookings\"></head>" +
+      "<body style=\"margin:0;padding:12px;background:#ffffff;\">" +
+      "<!--StartFragment-->" +
+      fragment +
+      "<!--EndFragment--></body></html>"
+    );
+  }
+
   function wrapPlainEmailHtml(plainBody) {
     const htmlBody = String(plainBody || "")
       .replace(/&/g, "&amp;")
@@ -1202,9 +1249,37 @@
       };
     }
 
+    if (action.kind === "html-template" && action.templateDir) {
+      const template = emailTemplateCache[action.templateDir];
+      const slug = String(action.templateDir)
+        .replace(/[^\w.-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      if (!template) {
+        return {
+          action,
+          subject: action.subject || "",
+          plain: "",
+          html: wrapPlainEmailHtml(""),
+          downloadPrefix: slug || "email",
+          useLeadIdInFilename: false,
+          isBookingForm: false,
+          templateMissing: true,
+        };
+      }
+      return {
+        action,
+        subject: action.subject || "",
+        plain: template.plain,
+        html: wrapEmailClipboardHtml(template.html),
+        downloadPrefix: slug || "email",
+        useLeadIdInFilename: false,
+        isBookingForm: false,
+      };
+    }
+
     const plain = String(action.bodyPlain || "");
     const html = action.bodyHtml
-      ? wrapPlainEmailHtml(action.bodyHtml)
+      ? wrapEmailClipboardHtml(action.bodyHtml)
       : wrapPlainEmailHtml(plain);
     const slug = String(action.id || "email")
       .replace(/[^\w.-]+/g, "-")
@@ -1224,7 +1299,8 @@
   function emailPayloadHasBody(payload) {
     if (!payload) return false;
     if (payload.isBookingForm) return true;
-    return Boolean(String(payload.plain || "").trim() || String(payload.action?.bodyHtml || "").trim());
+    if (payload.templateMissing) return false;
+    return Boolean(String(payload.plain || "").trim() || String(payload.html || "").trim());
   }
 
   const EMAIL_ACTION_ICON =
@@ -1242,8 +1318,7 @@
       btn.dataset.actionId = action.id;
       btn.innerHTML = EMAIL_ACTION_ICON + escapeHtml(action.label || action.id);
       btn.addEventListener("click", () => {
-        const { arrival, event } = getBookingContextForBookHua();
-        openEmailActionChooser(action.id, arrival, event);
+        void openEmailActionChooser(action.id);
       });
       bar.appendChild(btn);
     }
@@ -1262,7 +1337,14 @@
     if (prefillStep) prefillStep.hidden = !payload.isBookingForm;
 
     const bodyPending = document.getElementById("email-modal-body-pending");
-    if (bodyPending) bodyPending.hidden = emailPayloadHasBody(payload);
+    if (bodyPending) {
+      bodyPending.hidden = emailPayloadHasBody(payload);
+      if (payload.templateMissing) {
+        bodyPending.textContent =
+          "Email template is still loading or missing — refresh the page. If this persists, check assets/email-templates/.";
+        bodyPending.hidden = false;
+      }
+    }
   }
 
   function buildHuaBookingEml(subject, plainBody, htmlBody) {
@@ -1414,10 +1496,15 @@
     if (modal) modal.hidden = true;
   }
 
-  function openEmailActionChooser(actionId, arrival, event) {
-    const payload = resolveEmailPayload(actionId, arrival, event);
+  async function openEmailActionChooser(actionId, arrival, event) {
+    const action = getEmailAction(actionId);
+    if (action?.kind === "html-template" && action.templateDir && !emailTemplateCache[action.templateDir]) {
+      await loadEmailTemplate(action.templateDir);
+    }
+    const ctx = arrival !== undefined ? { arrival, event } : getBookingContextForBookHua();
+    const payload = resolveEmailPayload(actionId, ctx.arrival, ctx.event);
     if (!payload) return;
-    pendingEmailAction = { actionId, arrival, event, payload };
+    pendingEmailAction = { actionId, arrival: ctx.arrival, event: ctx.event, payload };
     lastEmailHtml = payload.html;
     lastEmailPlain = payload.plain;
     updateBookHuaRecipientsNote();
@@ -1486,7 +1573,7 @@
   async function openHuaBookingEmail(arrival) {
     if (!arrival) return;
     const event = pickEventForBookingEmail(arrival);
-    openEmailActionChooser("book-hua", arrival, event);
+    await openEmailActionChooser("book-hua", arrival, event);
   }
 
   function escapeHtml(s) {
@@ -2160,7 +2247,8 @@
     loadLiveTickets(),
     loadBookingRecipients(),
     loadEmailActions(),
-  ]).then(() => {
+  ]).then(async () => {
+    await preloadEmailTemplates();
     renderEmailActionButtons();
     renderPdfList();
     renderCalendar();
