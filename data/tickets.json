@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T18:52:22.7189536Z",
+  "updatedAt": "2026-05-29T18:55:25.6482367Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -291,7 +291,7 @@
     {
       "date": "2026-06-15",
       "sheetName": "06.15 HGV Live Ashley Cooke",
-      "ticketsAvailable": 100,
+      "ticketsAvailable": 98,
       "title": "HGV Live Ashley Cooke",
       "workbook": "June"
     },
