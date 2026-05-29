@@ -1100,6 +1100,34 @@
   let pendingBookHua = null;
   let outlookWebWindow = null;
   let lastOutlookWebOpenAt = 0;
+  const OUTLOOK_MAIL_URL = "https://outlook.office.com/mail/";
+  const OUTLOOK_COMPOSE_WINDOW =
+    "width=1024,height=768,menubar=no,toolbar=no,resizable=yes,scrollbars=yes";
+
+  function getOutlookComposeUrl() {
+    const qs = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT }).toString();
+    return `https://outlook.office.com/mail/deeplink/compose?${qs}`;
+  }
+
+  /** Start loading Outlook in the background (call on BOOK HUA click — user gesture). */
+  function prewarmOutlookWebInBackground() {
+    if (outlookWebWindow && !outlookWebWindow.closed) return;
+    const win = window.open(OUTLOOK_MAIL_URL, "hua-outlook-compose");
+    if (win) outlookWebWindow = win;
+  }
+
+  /** Begin loading Outlook as soon as the user presses Outlook Web (before click). */
+  function warmOutlookWebOnIntent() {
+    if (outlookWebWindow && !outlookWebWindow.closed) return;
+    const win = window.open("about:blank", "hua-outlook-compose");
+    if (!win) return;
+    outlookWebWindow = win;
+    try {
+      win.location.href = OUTLOOK_MAIL_URL;
+    } catch {
+      /* cross-origin */
+    }
+  }
 
   function triggerOutlookDesktopProtocol(subject) {
     const qs = new URLSearchParams({ subject }).toString();
@@ -1112,27 +1140,27 @@
   }
 
   function openOutlookWebComposeOnce() {
-    const qs = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT }).toString();
-    const url = `https://outlook.office.com/mail/deeplink/compose?${qs}`;
+    const url = getOutlookComposeUrl();
     const now = Date.now();
 
     if (outlookWebWindow && !outlookWebWindow.closed) {
       try {
         outlookWebWindow.location.href = url;
       } catch {
-        /* cross-origin — focus existing tab */
+        outlookWebWindow = window.open(url, "hua-outlook-compose", OUTLOOK_COMPOSE_WINDOW);
       }
       outlookWebWindow.focus();
+      lastOutlookWebOpenAt = now;
       return outlookWebWindow;
     }
 
-    if (now - lastOutlookWebOpenAt < 4000) {
+    if (now - lastOutlookWebOpenAt < 1500) {
       return outlookWebWindow;
     }
 
     lastOutlookWebOpenAt = now;
-    outlookWebWindow = window.open(url, "hua-outlook-compose");
-    if (outlookWebWindow) outlookWebWindow.focus();
+    outlookWebWindow = window.open(url, "hua-outlook-compose", OUTLOOK_COMPOSE_WINDOW);
+    outlookWebWindow?.focus();
     return outlookWebWindow;
   }
 
@@ -1197,6 +1225,7 @@
     pendingBookHua = { arrival, event };
     lastBookHuaHtml = buildHuaBookingClipboardHtml(arrival, event);
     lastBookHuaPlain = buildHuaBookingEmailBody(arrival, event);
+    prewarmOutlookWebInBackground();
     showBookHuaView("choose");
   }
 
@@ -1546,6 +1575,7 @@
   const bookHuaChooseEml = document.getElementById("book-hua-choose-eml");
   const bookHuaChooseCancel = document.getElementById("book-hua-choose-cancel");
   if (bookHuaChooseWeb) {
+    bookHuaChooseWeb.addEventListener("pointerdown", () => warmOutlookWebOnIntent());
     bookHuaChooseWeb.addEventListener("click", () => void launchBookHuaWeb());
   }
   if (bookHuaChooseDesktop) {
@@ -1576,6 +1606,7 @@
     });
   }
   if (bookHuaOpenWeb) {
+    bookHuaOpenWeb.addEventListener("pointerdown", () => warmOutlookWebOnIntent());
     bookHuaOpenWeb.addEventListener("click", () => openOutlookWebComposeOnce());
   }
   if (bookHuaBackWeb) {
