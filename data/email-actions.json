@@ -8,7 +8,7 @@
     },
     {
       "id": "hua-confirmation",
-      "label": "HUA CONFRIM",
+      "label": "HUA CONFIRM",
       "subject": "Hilton Ultimate Access |VIP Discount Tickets",
       "kind": "html-template",
       "templateDir": "hua-confirmation"
