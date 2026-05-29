@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T16:55:21.2621376Z",
+  "updatedAt": "2026-05-29T16:58:33.8955666Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -235,7 +235,7 @@
     {
       "date": "2026-06-08",
       "sheetName": "06.08 Big Fin W&D",
-      "ticketsAvailable": 37,
+      "ticketsAvailable": 35,
       "title": "Big Fin W&D",
       "workbook": "June"
     },
