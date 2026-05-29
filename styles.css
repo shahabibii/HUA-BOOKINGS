@@ -97,28 +97,32 @@ body {
   line-height: 0;
 }
 
-.brand-logo-frame {
+.logo-container {
   display: block;
-  width: min(100%, 24rem);
-  margin: 0 auto;
+  max-width: 320px;
+  width: min(100%, 320px);
+  margin: 10px auto;
+  padding: 5px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.5));
 }
 
-.brand-logo img {
+.logo-container svg {
   display: block;
   width: 100%;
   height: auto;
-  filter: drop-shadow(0 3px 20px rgba(0, 0, 0, 0.4));
 }
 
 @media (min-width: 640px) {
-  .brand-logo-frame {
-    width: min(100%, 30rem);
+  .logo-container {
+    max-width: 380px;
+    width: min(100%, 380px);
   }
 }
 
 @media (min-width: 900px) {
-  .brand-logo-frame {
-    width: min(100%, 36rem);
+  .logo-container {
+    max-width: 420px;
+    width: min(100%, 420px);
   }
 }
 
