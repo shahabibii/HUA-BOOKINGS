@@ -191,12 +191,12 @@ body {
 
 .nyx-btn.email-action-btn {
   box-sizing: border-box;
-  flex: 0 0 8.75rem;
-  width: 8.75rem;
-  padding: 8px 10px;
-  font-size: 9px;
+  flex: 0 0 9.5rem;
+  width: 9.5rem;
+  padding: 8px 9px;
+  font-size: 10.5px;
   font-weight: 500;
-  letter-spacing: 0.55px;
+  letter-spacing: 0.5px;
   line-height: 1;
   text-align: center;
   justify-content: center;
@@ -206,33 +206,38 @@ body {
 }
 
 .nyx-btn.email-action-btn .nyx-btn-icon {
-  width: 9px;
-  height: 9px;
+  width: 10px;
+  height: 10px;
 }
 
 @media (min-width: 900px) {
   .nyx-btn.email-action-btn {
-    flex-basis: 9rem;
-    width: 9rem;
-    padding: 9px 11px;
-    font-size: 9.5px;
-    letter-spacing: 0.6px;
+    flex-basis: 10rem;
+    width: 10rem;
+    padding: 9px 10px;
+    font-size: 11px;
+    letter-spacing: 0.55px;
+  }
+
+  .nyx-btn.email-action-btn .nyx-btn-icon {
+    width: 11px;
+    height: 11px;
   }
 }
 
 @media (max-width: 640px) {
   .nyx-btn.email-action-btn {
-    flex-basis: 8.1rem;
-    width: 8.1rem;
+    flex-basis: 8.85rem;
+    width: 8.85rem;
     padding: 7px 8px;
-    font-size: 8px;
-    letter-spacing: 0.5px;
+    font-size: 9.5px;
+    letter-spacing: 0.45px;
     gap: 4px;
   }
 
   .nyx-btn.email-action-btn .nyx-btn-icon {
-    width: 8px;
-    height: 8px;
+    width: 9px;
+    height: 9px;
   }
 }
 
