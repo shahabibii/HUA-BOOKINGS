@@ -1179,7 +1179,7 @@
     if (webView) webView.hidden = view !== "web";
     if (desktopView) desktopView.hidden = view !== "desktop";
 
-    if (view === "web" && status) {
+    if (view === "web" && status && copied !== undefined) {
       status.textContent = copied
         ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
         : "Copy failed in this browser. Use Copy template again, or download the .eml file instead.";
@@ -1202,9 +1202,24 @@
 
   async function launchBookHuaWeb() {
     if (!pendingBookHua) return;
-    const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, lastBookHuaPlain);
+    const webBtn = document.getElementById("book-hua-choose-web");
+    if (webBtn) webBtn.disabled = true;
+
     openOutlookWebComposeOnce();
-    showBookHuaView("web", copied);
+    showBookHuaView("web");
+    const status = document.getElementById("book-hua-modal-copy-status");
+    if (status) {
+      status.textContent =
+        "Outlook is opening in another tab (first load can take 10–30 seconds). Copying the booking form…";
+    }
+
+    const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, lastBookHuaPlain);
+    if (status) {
+      status.textContent = copied
+        ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
+        : "Copy failed in this browser. Use Copy template again, or download the .eml file instead.";
+    }
+    if (webBtn) webBtn.disabled = false;
   }
 
   function launchBookHuaDesktop() {
