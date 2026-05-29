@@ -133,11 +133,11 @@ body {
   letter-spacing: -0.02em;
 }
 
-.app--dashboard .nyx-action-container {
+.app--dashboard .hua-action-container {
   margin-top: 0.25rem;
 }
 
-.nyx-action-container {
+.hua-action-container {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -147,37 +147,35 @@ body {
 
 .nyx-btn {
   font-family: inherit;
-  border: none;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  padding: 12px 32px;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 1.5px;
+  border-radius: 4px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  gap: 10px;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-.nyx-btn-primary {
-  background: linear-gradient(135deg, #ffffff 0%, #e0e0e0 45%, #b5b5b5 100%);
-  color: #0d1117;
-  padding: 12px 32px;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  border-radius: 6px;
-  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.12);
+.nyx-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
 }
 
-.nyx-btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
-}
-
-.nyx-btn-primary:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.45);
+.nyx-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
   outline-offset: 2px;
 }
 
 .nyx-btn-icon {
   flex-shrink: 0;
+  opacity: 0.85;
 }
 
 /* Restore Dashboard tab: uncomment in index.html and restore .tabs-primary nav if needed */
