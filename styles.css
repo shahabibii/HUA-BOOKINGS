@@ -45,12 +45,67 @@ body {
 }
 
 .top {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: 1.25rem;
+}
+
+.nyx-menu-container {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.nyx-menu-btn {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  width: 44px;
+  height: 44px;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: #ffffff;
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.nyx-menu-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+.nyx-menu-btn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+
+.nyx-menu-icon {
+  opacity: 0.9;
+}
+
+@media (max-width: 640px) {
+  .nyx-menu-container {
+    top: 12px;
+    left: 12px;
+  }
+
+  .nyx-menu-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .nyx-menu-icon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 .top-hero {

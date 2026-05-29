@@ -1825,6 +1825,13 @@
     }
   }
 
+  const nyxMenuBtn = document.getElementById("nyx-menu-btn");
+  if (nyxMenuBtn) {
+    nyxMenuBtn.addEventListener("click", () => {
+      console.log("Menu clicked - link your drawer/overlay function here");
+    });
+  }
+
   document.getElementById("prev-month").addEventListener("click", () => {
     viewDate = new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1);
     selectedDay = null;
