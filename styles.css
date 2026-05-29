@@ -11,6 +11,8 @@
   --event-alt: #9b5de5;
   --event-dim: rgba(196, 124, 255, 0.2);
   --success: #4ade80;
+  --tickets-ok: #6efcc8;
+  --tickets-low: #ff9f43;
   --radius: 10px;
   --font: "DM Sans", system-ui, sans-serif;
 }
@@ -533,16 +535,21 @@ body {
 
 .day-tickets {
   display: block;
-  font-size: 0.66rem;
-  font-weight: 700;
+  font-size: 0.68rem;
+  font-weight: 800;
   line-height: 1.2;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-  text-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
+  color: var(--tickets-ok);
+  letter-spacing: 0.03em;
+  text-shadow:
+    0 0 10px rgba(110, 252, 200, 0.65),
+    0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .day-tickets.low {
-  color: #f0a060;
+  color: var(--tickets-low);
+  text-shadow:
+    0 0 10px rgba(255, 159, 67, 0.6),
+    0 1px 2px rgba(0, 0, 0, 0.85);
 }
 
 .day-events {
@@ -594,7 +601,7 @@ body {
 .tickets-legend {
   margin-top: 0.35rem;
   font-size: 0.72rem;
-  color: var(--accent);
+  color: var(--tickets-ok);
 }
 
 .flyer-preview-col {
