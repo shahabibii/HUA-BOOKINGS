@@ -8,14 +8,14 @@
     },
     {
       "id": "hua-confirmation",
-      "label": "HUA CONFIRMATION",
+      "label": "HUA CONFRIM",
       "subject": "Hilton Ultimate Access |VIP Discount Tickets",
       "kind": "html-template",
       "templateDir": "hua-confirmation"
     },
     {
       "id": "tour-confirmation",
-      "label": "TOUR CONFIRMATION",
+      "label": "TOUR CONFIRM",
       "subject": "Hilton Vacation Portfolio Review | VIP Discount Tickets",
       "kind": "html-template",
       "templateDir": "tour-confirmation"
@@ -29,14 +29,14 @@
     },
     {
       "id": "owner-invite",
-      "label": "OWNER INVITE",
+      "label": "OWN INVITE",
       "subject": "Hilton Owner Invitation | VIP Discount Tickets",
       "kind": "html-template",
       "templateDir": "owner-invite"
     },
     {
       "id": "non-owner-invite",
-      "label": "NON OWNER INVITE",
+      "label": "NON OWN INVITE",
       "subject": "Your VIP Invitation, Gift & VIP Discount Tickets",
       "kind": "html-template",
       "templateDir": "non-owner-invite"
