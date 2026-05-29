@@ -3,6 +3,8 @@ name: Update tickets from Power Automate
 on:
   repository_dispatch:
     types: [update-tickets]
+  # Manual test from GitHub → Actions → this workflow → Run workflow
+  workflow_dispatch:
 
 permissions:
   contents: write
