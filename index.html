@@ -15,225 +15,78 @@
   </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="preconnect" href="https://outlook.office.com" crossorigin />
-  <link rel="dns-prefetch" href="https://outlook.office.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260531l" />
+  <link rel="stylesheet" href="styles.css?v=20260531m" />
+  <link rel="stylesheet" href="home.css?v=20260531m" />
 </head>
-<body>
-  <div class="app">
-    <header class="top">
-      <div class="nyx-menu-container">
-        <button type="button" class="nyx-menu-btn" id="nyx-menu-btn" aria-label="Open menu" aria-haspopup="true" aria-expanded="false" aria-controls="nyx-menu-dropdown">
-          <svg class="nyx-menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <path d="M5 6h14" />
-            <path d="M3 12h5l2-2h4l2 2h5" />
-            <path d="M5 18h14" />
+<body class="home-body">
+  <div class="home-screen">
+    <div class="film-grain" aria-hidden="true"></div>
+    <div class="home-frame" aria-hidden="true"></div>
+
+    <div class="nyx-menu-container">
+      <button type="button" class="nyx-menu-btn" id="nyx-menu-btn" aria-label="Open menu" aria-haspopup="true" aria-expanded="false" aria-controls="nyx-menu-dropdown">
+        <svg class="nyx-menu-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M5 6h14" />
+          <path d="M3 12h5l2-2h4l2 2h5" />
+          <path d="M5 18h14" />
+        </svg>
+      </button>
+      <div class="nyx-menu-dropdown" id="nyx-menu-dropdown" hidden>
+        <nav class="nyx-menu-nav" id="nyx-menu-nav" aria-label="Site pages"></nav>
+      </div>
+    </div>
+
+    <div class="home-logo-stage">
+      <div class="home-logo-drift">
+        <div class="home-logo-pulse">
+          <svg
+            class="home-logo-svg"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 800 260"
+            width="100%"
+            height="100%"
+            role="img"
+            aria-label="ONYX"
+          >
+            <title>ONYX</title>
+            <defs>
+              <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#C0C0C0" />
+                <stop offset="20%" stop-color="#FFFFFF" />
+                <stop offset="45%" stop-color="#909090" />
+                <stop offset="70%" stop-color="#E8E8E8" />
+                <stop offset="100%" stop-color="#787878" />
+              </linearGradient>
+            </defs>
+
+            <rect width="100%" height="100%" fill="transparent" />
+
+            <g transform="translate(20, 10)">
+              <polygon points="150,40 240,90 240,190 150,240 60,190 60,90" fill="none" stroke="url(#silverGrad)" stroke-width="4" stroke-linejoin="round" />
+
+              <line x1="150" y1="40" x2="150" y2="70" stroke="url(#silverGrad)" stroke-width="3" />
+              <line x1="150" y1="240" x2="150" y2="210" stroke="url(#silverGrad)" stroke-width="2" />
+              <line x1="60" y1="90" x2="90" y2="105" stroke="url(#silverGrad)" stroke-width="2" />
+              <line x1="240" y1="90" x2="210" y2="105" stroke="url(#silverGrad)" stroke-width="2" />
+              <line x1="60" y1="190" x2="90" y2="175" stroke="url(#silverGrad)" stroke-width="2" />
+              <line x1="240" y1="190" x2="210" y2="175" stroke="url(#silverGrad)" stroke-width="2" />
+
+              <polygon points="150,40 180,90 150,70" fill="url(#silverGrad)" opacity="0.28" />
+
+              <polygon points="150,70 210,105 210,175 150,210 90,175 90,105" fill="none" stroke="url(#silverGrad)" stroke-width="1.5" stroke-dasharray="2,2" />
+
+              <polygon points="150,95 190,118 190,162 150,185 110,162 110,118" fill="rgba(255,255,255,0.03)" stroke="url(#silverGrad)" stroke-width="3" />
+            </g>
+
+            <text x="270" y="140" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="125" font-weight="200" fill="url(#silverGrad)" letter-spacing="6" dominant-baseline="central">NYX</text>
           </svg>
-        </button>
-        <div class="nyx-menu-dropdown" id="nyx-menu-dropdown" hidden>
-          <nav class="nyx-menu-nav" id="nyx-menu-nav" aria-label="Site pages"></nav>
-        </div>
-      </div>
-      <div class="top-hero">
-        <div class="brand">
-          <h1 class="brand-logo">
-            <div class="logo-container">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 260" width="100%" height="100%" role="img" aria-label="ONYX">
-                <title>ONYX</title>
-                <defs>
-                  <linearGradient id="onyxSilverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#E5E5E5" />
-                    <stop offset="25%" stop-color="#FFFFFF" />
-                    <stop offset="50%" stop-color="#B8B8B8" />
-                    <stop offset="75%" stop-color="#D9D9D9" />
-                    <stop offset="100%" stop-color="#999999" />
-                  </linearGradient>
-                </defs>
-
-                <rect width="100%" height="100%" fill="transparent" />
-
-                <g transform="translate(20, 10)">
-                  <polygon points="150,40 240,90 240,190 150,240 60,190 60,90" fill="none" stroke="url(#onyxSilverGrad)" stroke-width="4" stroke-linejoin="round" />
-
-                  <polygon points="150,70 210,105 210,175 150,210 90,175 90,105" fill="none" stroke="url(#onyxSilverGrad)" stroke-width="1.5" stroke-dasharray="2,2" />
-
-                  <polygon points="150,95 190,118 190,162 150,185 110,162 110,118" fill="none" stroke="url(#onyxSilverGrad)" stroke-width="3" />
-
-                  <line x1="150" y1="40" x2="150" y2="70" stroke="url(#onyxSilverGrad)" stroke-width="3" />
-                  <line x1="150" y1="240" x2="150" y2="210" stroke="url(#onyxSilverGrad)" stroke-width="2" />
-                  <line x1="60" y1="90" x2="90" y2="105" stroke="url(#onyxSilverGrad)" stroke-width="2" />
-                  <line x1="240" y1="90" x2="210" y2="105" stroke="url(#onyxSilverGrad)" stroke-width="2" />
-                  <line x1="60" y1="190" x2="90" y2="175" stroke="url(#onyxSilverGrad)" stroke-width="2" />
-                  <line x1="240" y1="190" x2="210" y2="175" stroke="url(#onyxSilverGrad)" stroke-width="2" />
-
-                  <polygon points="150,40 180,90 150,70" fill="url(#onyxSilverGrad)" opacity="0.25" />
-                </g>
-
-                <text x="270" y="140" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="125" font-weight="200" fill="url(#onyxSilverGrad)" letter-spacing="6" dominant-baseline="central">NYX</text>
-              </svg>
-            </div>
-          </h1>
-          <p class="subtitle" id="header-subtitle" hidden></p>
-        </div>
-        <nav class="email-action-bar" id="email-action-bar" aria-label="Email actions"></nav>
-      </div>
-      <!-- Restore Event Data / Arrivals: uncomment this block
-      <nav class="tabs tabs-secondary" id="import-data-tabs" role="tablist" aria-label="Import data">
-        <button type="button" class="tab" data-tab="flyers" role="tab" aria-selected="false">Event Data</button>
-        <button type="button" class="tab" data-tab="arrivals" role="tab" aria-selected="false">Arrivals (CSV)</button>
-      </nav>
-      -->
-    </header>
-
-    <section class="upload-panels" id="upload-panels" hidden>
-      <div class="panel active" id="panel-flyers" role="tabpanel">
-        <p class="hint">
-          <strong>Hosted flyers</strong> load for everyone from the <code>flyers/</code> folder in the repo (see
-          <code>flyers/README.md</code>) — drop a month folder like <code>flyers/june/</code> with files named
-          <code>06.01 Spring Gala.pdf</code> or <code>6.01 Spring Gala.pdf</code>, then push.
-          To add flyers only in this browser, choose files or an entire folder below.
-          <strong>Clear</strong> removes local uploads only.
-        </p>
-        <div class="panel-row">
-          <label class="file-btn">
-            <input type="file" id="pdf-input" accept=".pdf,application/pdf" multiple />
-            <span>Choose PDF files</span>
-          </label>
-          <label class="file-btn secondary">
-            <input type="file" id="pdf-folder-input" accept=".pdf,application/pdf" webkitdirectory directory multiple />
-            <span>Choose flyer folder</span>
-          </label>
-          <button type="button" class="clear-data-btn" id="clear-flyers">Clear</button>
-        </div>
-        <ul class="file-list" id="pdf-list"></ul>
-      </div>
-      <div class="panel" id="panel-arrivals" role="tabpanel" hidden>
-        <p class="hint">
-          Listing-style exports (e.g. <code>RES_LISTING_DETAIL</code>) should include:
-          <code>LEAD_ID</code>, <code>PROPERTY_DESC</code>, <code>ARRIVAL_DATE</code>, <code>NIGHTS</code>, <code>RESV_TYPE</code>.
-          Guest column: we use <code>GUEST_NAME2</code> when present; otherwise <code>GUEST_NAME</code> (most rows only have the latter).
-          Only <code>RESV_TYPE</code> values FIX, CLB, FCC, HGD, MAX, DRM, DFC, OW, OWU, DXT, OPD, DXP, MGV are loaded.
-          <strong>Clear</strong> removes loaded rows so you can import a fresh CSV.
-        </p>
-        <div class="panel-row">
-          <label class="file-btn secondary">
-            <input type="file" id="csv-input" accept=".csv,text/csv" />
-            <span>Choose CSV file</span>
-          </label>
-          <button type="button" class="clear-data-btn" id="clear-arrivals">Clear</button>
-        </div>
-        <p class="csv-status" id="csv-status"></p>
-      </div>
-    </section>
-
-    <main class="main dashboard-layout" id="main-dashboard">
-      <section class="calendar-section" aria-label="Calendar">
-        <div class="cal-header">
-          <button type="button" class="nav-btn" id="prev-month" aria-label="Previous month">‹</button>
-          <h2 id="month-label"></h2>
-          <button type="button" class="nav-btn" id="next-month" aria-label="Next month">›</button>
-          <button type="button" class="nav-btn ghost" id="today-btn">Today</button>
-        </div>
-        <div class="weekdays">
-          <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
-        </div>
-        <div class="grid" id="calendar-grid"></div>
-        <p class="legend">
-          <span class="dot event"></span> Event day
-          <span class="legend-bars multi" aria-hidden="true"></span> Multiple events
-        </p>
-        <p class="legend tickets-legend" id="tickets-legend" hidden></p>
-      </section>
-
-      <aside class="flyer-preview-col" aria-label="Flyer preview">
-        <p class="pdf-preview-empty" id="pdf-preview-empty">
-          Click a day with an event (purple underline) to preview the flyer here.
-        </p>
-        <div class="pdf-preview-panel" id="pdf-preview-panel" hidden>
-          <h4 class="pdf-preview-heading" id="pdf-preview-heading"></h4>
-          <div class="pdf-preview-frames" id="pdf-preview-frames"></div>
-          <p class="pdf-preview-hint" id="pdf-preview-hint" hidden>
-            Could not load the PDF preview. Hosted flyers are fetched from the site; local uploads must be added under <strong>Event Data</strong>.
-          </p>
-        </div>
-      </aside>
-    </main>
-  </div>
-
-  <div class="book-hua-modal" id="book-hua-modal" hidden>
-    <div class="book-hua-modal-card" role="dialog" aria-labelledby="book-hua-modal-title" aria-modal="true">
-      <div id="book-hua-view-choose">
-        <h3 class="book-hua-modal-title" id="book-hua-modal-title">Send email</h3>
-        <p class="book-hua-modal-lead" id="email-modal-choose-lead">
-          Choose how you want to open the email. Subject will be <strong data-email-subject></strong>.
-        </p>
-        <p class="book-hua-modal-note" id="email-modal-body-pending" hidden>
-          Email body is not configured yet — paste will be empty until the template is added.
-        </p>
-        <p class="book-hua-modal-note" id="book-hua-recipients-note" hidden></p>
-        <div class="book-hua-choice-list">
-          <button type="button" class="book-hua-choice-btn" id="book-hua-choose-web">
-            <span class="book-hua-choice-label">Outlook Web</span>
-            <span class="book-hua-choice-desc">Opens compose in your browser with To prefilled. Green/yellow form copied — paste into the body.</span>
-          </button>
-          <button type="button" class="book-hua-choice-btn" id="book-hua-choose-desktop">
-            <span class="book-hua-choice-label">Outlook Desktop (.eml)</span>
-            <span class="book-hua-choice-desc">Downloads a draft with To, subject, and the full green/yellow template — open the .eml from Downloads.</span>
-          </button>
-          <button type="button" class="book-hua-choice-btn" id="book-hua-choose-eml">
-            <span class="book-hua-choice-label">Download .eml only</span>
-            <span class="book-hua-choice-desc">Save the formatted template file — open it in any mail app when ready.</span>
-          </button>
-        </div>
-        <div class="book-hua-modal-actions">
-          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-choose-cancel">Cancel</button>
-        </div>
-      </div>
-
-      <div id="book-hua-view-web" hidden>
-        <h3 class="book-hua-modal-title">Paste the email</h3>
-        <p class="book-hua-modal-lead" id="email-modal-web-lead">
-          Outlook on the web opens with <strong>To</strong> and subject <strong data-email-subject></strong>.
-          The email content is on your clipboard — paste it into the body.
-        </p>
-        <ol class="book-hua-modal-steps" id="book-hua-modal-steps">
-          <li>Click inside the email body in Outlook.</li>
-          <li>Press <strong>Cmd+V</strong> (Mac) or <strong>Ctrl+V</strong> (Windows) to paste.</li>
-          <li id="book-hua-step-prefill" hidden>
-            Known booking details from your calendar selection appear after each label — complete any empty rows.
-          </li>
-        </ol>
-        <p class="book-hua-modal-note" id="book-hua-modal-copy-status"></p>
-        <div class="book-hua-modal-actions">
-          <button type="button" class="book-hua-modal-btn primary" id="book-hua-copy-again">Copy template again</button>
-          <button type="button" class="book-hua-modal-btn" id="book-hua-open-web">Open Outlook Web</button>
-          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-back-web">Back</button>
-          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-modal-close">Done</button>
-        </div>
-      </div>
-
-      <div id="book-hua-view-desktop" hidden>
-        <h3 class="book-hua-modal-title">Open the booking draft</h3>
-        <p class="book-hua-modal-lead" id="email-modal-desktop-lead">
-          A draft <strong>.eml</strong> was downloaded with <strong>To</strong>, subject <strong data-email-subject></strong>, and the email template.
-        </p>
-        <ol class="book-hua-modal-steps">
-          <li>Open your <strong>Downloads</strong> folder and double-click the downloaded <strong>.eml</strong> file.</li>
-          <li>Outlook opens a new message with To and the body ready to send.</li>
-        </ol>
-        <div class="book-hua-modal-actions">
-          <button type="button" class="book-hua-modal-btn" id="book-hua-redownload-eml">Download .eml again</button>
-          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-back-desktop">Back</button>
-          <button type="button" class="book-hua-modal-btn ghost" id="book-hua-modal-close-desktop">Done</button>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="menu.js?v=20260531l"></script>
-  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="app.js?v=20260531l"></script>
+  <script src="menu.js?v=20260531m"></script>
+  <script src="home.js?v=20260531m"></script>
 </body>
 </html>

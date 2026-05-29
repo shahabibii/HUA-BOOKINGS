@@ -65,9 +65,17 @@
   const TICKETS_REFRESH_MS = 5 * 60 * 1000;
   const LOW_TICKET_THRESHOLD = 10;
 
-  /** Resolve a site-relative path (works with or without trailing slash on GitHub Pages). */
+  /** Resolve a site-relative path (works from nested routes on GitHub Pages). */
+  function resolveSiteBase() {
+    const parts = location.pathname.split("/").filter(Boolean);
+    if (parts.length && /\.[a-z0-9]+$/i.test(parts[parts.length - 1])) parts.pop();
+    const last = parts[parts.length - 1];
+    if (last === "hua" || last === "availability") parts.pop();
+    return parts.length ? "/" + parts.join("/") + "/" : "/";
+  }
+
   function assetUrl(relativePath) {
-    return new URL(relativePath, window.location.href).href;
+    return new URL(relativePath, location.origin + resolveSiteBase()).href;
   }
 
   /** Encode folder/file names for URLs (apostrophes, ampersands, spaces, etc.). */
