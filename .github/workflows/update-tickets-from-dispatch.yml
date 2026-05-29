@@ -3,7 +3,6 @@ name: Update tickets from Power Automate
 on:
   repository_dispatch:
     types: [update-tickets]
-  # Manual test from GitHub → Actions → this workflow → Run workflow
   workflow_dispatch:
 
 permissions:
@@ -17,17 +16,8 @@ jobs:
 
       - name: Write data/tickets.json from dispatch payload
         env:
-          PAYLOAD: ${{ toJson(github.event.client_payload) }}
-        run: node -e "
-          const fs = require('fs');
-          const payload = JSON.parse(process.env.PAYLOAD || '{}');
-          const out = {
-            updatedAt: payload.updatedAt || new Date().toISOString(),
-            events: Array.isArray(payload.events) ? payload.events : [],
-          };
-          fs.mkdirSync('data', { recursive: true });
-          fs.writeFileSync('data/tickets.json', JSON.stringify(out, null, 2) + '\n');
-          "
+          TICKETS_PAYLOAD: ${{ toJson(github.event.client_payload) }}
+        run: node scripts/write-tickets-json.js
 
       - name: Commit and push if changed
         run: |
