@@ -10,9 +10,8 @@
       "id": "hua-confirmation",
       "label": "HUA CONFIRMATION",
       "subject": "Hilton Ultimate Access |VIP Discount Tickets",
-      "kind": "static",
-      "bodyPlain": "",
-      "bodyHtml": ""
+      "kind": "html-template",
+      "templateDir": "hua-confirmation"
     },
     {
       "id": "tour-confirmation",
@@ -25,25 +24,22 @@
       "id": "first-attempt",
       "label": "1ST ATTEMPT",
       "subject": "HILTON GRAND VACATIONS: Action Needed to Finalize Your Upcoming Orlando Stay",
-      "kind": "static",
-      "bodyPlain": "",
-      "bodyHtml": ""
+      "kind": "html-template",
+      "templateDir": "first-attempt"
     },
     {
       "id": "owner-invite",
       "label": "OWNER INVITE",
       "subject": "Hilton Owner Invitation | VIP Discount Tickets",
-      "kind": "static",
-      "bodyPlain": "",
-      "bodyHtml": ""
+      "kind": "html-template",
+      "templateDir": "owner-invite"
     },
     {
       "id": "non-owner-invite",
       "label": "NON OWNER INVITE",
       "subject": "Your VIP Invitation, Gift & VIP Discount Tickets",
-      "kind": "static",
-      "bodyPlain": "",
-      "bodyHtml": ""
+      "kind": "html-template",
+      "templateDir": "non-owner-invite"
     }
   ]
 }
