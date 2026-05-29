@@ -24,7 +24,7 @@ Then open http://localhost:8766/ (trailing slash matters for asset paths).
 
 - **Calendar** — hosted PDF flyers from `flyers/` (May/June 2026 folders, etc.)
 - **Live ticket counts** — `data/tickets.json` (mint text at bottom of day cells; refreshes every 5 min on the site)
-- **BOOK HUA** — chooser: Outlook Web (paste template), Outlook Desktop (.eml), or download .eml only
+- **BOOK HUA** — chooser: Outlook Web (paste template), Outlook Desktop (.eml), or download .eml only; **To/Cc** from `data/booking-recipients.json`
 - **Power Automate** — reads May/June guestlist Excel (read-only Office Script) → POST `repository_dispatch` → GitHub Action writes `data/tickets.json`
 - **Event Data / Arrivals tabs** — hidden in UI (commented out in `index.html`); panels + logic still in repo
 
@@ -33,11 +33,26 @@ Then open http://localhost:8766/ (trailing slash matters for asset paths).
 | Path | Purpose |
 |------|---------|
 | `app.js` | Calendar, flyers, tickets, BOOK HUA |
+| `data/booking-recipients.json` | Prefill **To** / **Cc** on BOOK HUA emails |
 | `data/tickets.json` | Live counts (updated by PA + Actions) |
 | `data/flyers.json` | Hosted flyer manifest (auto-updated on push to `flyers/`) |
 | `scripts/office-script-get-ticket-events.ts` | Source for SharePoint Office Script |
 | `.github/workflows/update-tickets-from-dispatch.yml` | Writes tickets.json from Power Automate |
 | `SHAREPOINT-SETUP.md` | Azure/PA notes (optional Azure path not used on site) |
+
+## BOOK HUA — To / Cc prefills
+
+Edit `data/booking-recipients.json`:
+
+```json
+{
+  "to": ["reservations@yourcompany.com"],
+  "cc": ["manager@yourcompany.com"]
+}
+```
+
+- **Desktop & .eml:** To and Cc headers are set on the message (most reliable).
+- **Outlook Web:** `to` and `cc` are passed on the compose deeplink; CC is not supported on all tenants — use Desktop or `.eml` if CC does not appear.
 
 ## Power Automate (HUA BOOKINGS flow)
 

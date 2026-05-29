@@ -57,6 +57,7 @@
   const HOSTED_FLYERS_BASE = "flyers/";
   const FLYERS_CACHE_BUST = "20260531e";
   const TICKETS_MANIFEST = "data/tickets.json";
+  const BOOKING_RECIPIENTS_MANIFEST = "data/booking-recipients.json";
   const CANCELED_EVENTS_MANIFEST = "data/canceled-events.json";
   const TICKETS_CACHE_BUST = "20260530g";
   const TICKETS_REFRESH_MS = 5 * 60 * 1000;
@@ -193,6 +194,73 @@
   const mainDashboard = document.getElementById("main-dashboard");
 
   const HUA_BOOKING_SUBJECT = "HUA BOOKING";
+
+  /** @type {{ to: string[], cc: string[] }} */
+  let bookingRecipients = { to: [], cc: [] };
+
+  function normalizeEmailList(value) {
+    if (!value) return [];
+    if (Array.isArray(value)) {
+      return value.map(String).map((s) => s.trim()).filter(Boolean);
+    }
+    if (typeof value === "string") {
+      return value
+        .split(/[,;]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+    }
+    return [];
+  }
+
+  async function loadBookingRecipients() {
+    try {
+      const res = await fetch(assetUrl(`${BOOKING_RECIPIENTS_MANIFEST}?v=${TICKETS_CACHE_BUST}`));
+      if (!res.ok) return;
+      const data = await res.json();
+      bookingRecipients = {
+        to: normalizeEmailList(data.to),
+        cc: normalizeEmailList(data.cc),
+      };
+    } catch {
+      bookingRecipients = { to: [], cc: [] };
+    }
+  }
+
+  function getHuaBookingRecipients() {
+    return bookingRecipients;
+  }
+
+  function formatRecipientsForUrl(emails) {
+    return emails.join(",");
+  }
+
+  function formatRecipientsForEml(emails) {
+    return emails.join("; ");
+  }
+
+  function formatRecipientsDisplay() {
+    const { to, cc } = getHuaBookingRecipients();
+    const parts = [];
+    if (to.length) parts.push(`To: ${to.join(", ")}`);
+    if (cc.length) parts.push(`Cc: ${cc.join(", ")}`);
+    return parts.join(" · ");
+  }
+
+  function buildHuaBookingComposeParams() {
+    const params = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT });
+    const { to, cc } = getHuaBookingRecipients();
+    if (to.length) params.set("to", formatRecipientsForUrl(to));
+    if (cc.length) params.set("cc", formatRecipientsForUrl(cc));
+    return params;
+  }
+
+  function updateBookHuaRecipientsNote() {
+    const el = document.getElementById("book-hua-recipients-note");
+    if (!el) return;
+    const text = formatRecipientsDisplay();
+    el.textContent = text;
+    el.hidden = !text;
+  }
 
   function loadJson(key, fallback) {
     try {
@@ -1080,11 +1148,16 @@
 
   function buildHuaBookingEml(subject, plainBody, htmlBody) {
     const boundary = "----=_HUA_Booking_" + Date.now();
-    return [
+    const { to, cc } = getHuaBookingRecipients();
+    const headers = [
       "MIME-Version: 1.0",
       "X-Unsent: 1",
       "Subject: " + subject,
-      "To: ",
+    ];
+    if (to.length) headers.push("To: " + formatRecipientsForEml(to));
+    if (cc.length) headers.push("Cc: " + formatRecipientsForEml(cc));
+    return [
+      ...headers,
       "Content-Type: multipart/alternative; boundary=\"" + boundary + "\"",
       "",
       "--" + boundary,
@@ -1130,12 +1203,11 @@
   let outlookWebWindow = null;
   let lastOutlookWebOpenAt = 0;
   function getOutlookComposeUrl() {
-    const qs = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT }).toString();
-    return `https://outlook.office.com/mail/deeplink/compose?${qs}`;
+    return `https://outlook.office.com/mail/deeplink/compose?${buildHuaBookingComposeParams().toString()}`;
   }
 
-  function triggerOutlookDesktopProtocol(subject) {
-    const qs = new URLSearchParams({ subject }).toString();
+  function triggerOutlookDesktopProtocol() {
+    const qs = buildHuaBookingComposeParams().toString();
     const link = document.createElement("a");
     link.href = `ms-outlook:compose?${qs}`;
     link.style.display = "none";
@@ -1230,6 +1302,7 @@
     pendingBookHua = { arrival, event };
     lastBookHuaHtml = buildHuaBookingClipboardHtml(arrival, event);
     lastBookHuaPlain = buildHuaBookingEmailBody(arrival, event);
+    updateBookHuaRecipientsNote();
     showBookHuaView("choose");
   }
 
@@ -1259,7 +1332,7 @@
     if (!pendingBookHua) return;
     const { arrival, event } = pendingBookHua;
     downloadHuaBookingEml(arrival, event);
-    triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT);
+    triggerOutlookDesktopProtocol();
     showBookHuaView("desktop");
   }
 
@@ -1625,7 +1698,7 @@
     });
   }
   if (bookHuaOpenDesktop) {
-    bookHuaOpenDesktop.addEventListener("click", () => triggerOutlookDesktopProtocol(HUA_BOOKING_SUBJECT));
+    bookHuaOpenDesktop.addEventListener("click", () => triggerOutlookDesktopProtocol());
   }
   if (bookHuaBackDesktop) {
     bookHuaBackDesktop.addEventListener("click", () => showBookHuaView("choose"));
@@ -1969,7 +2042,7 @@
   renderPdfList();
   renderCalendar();
   renderPdfPreview();
-  Promise.all([loadCanceledEvents(), loadHostedFlyers(), loadLiveTickets()]).then(() => {
+  Promise.all([loadCanceledEvents(), loadHostedFlyers(), loadLiveTickets(), loadBookingRecipients()]).then(() => {
     renderPdfList();
     renderCalendar();
     renderPdfPreview();
