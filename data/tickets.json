@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T14:16:13.9827101Z",
+  "updatedAt": "2026-05-29T14:22:12.3979097Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -207,7 +207,7 @@
     {
       "date": "2026-06-04",
       "sheetName": "06.04 HOB and Cirque",
-      "ticketsAvailable": 6,
+      "ticketsAvailable": 3,
       "title": "HOB and Cirque",
       "workbook": "June"
     },
