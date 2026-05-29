@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T17:10:48.0410746Z",
+  "updatedAt": "2026-05-29T17:13:28.4346237Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -200,7 +200,7 @@
     {
       "date": "2026-06-03",
       "sheetName": "06.03 Vito's W&D",
-      "ticketsAvailable": 22,
+      "ticketsAvailable": 20,
       "title": "Vito's W&D",
       "workbook": "June"
     },
