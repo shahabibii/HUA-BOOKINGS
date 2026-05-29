@@ -18,7 +18,7 @@
   <link rel="preconnect" href="https://outlook.office.com" crossorigin />
   <link rel="dns-prefetch" href="https://outlook.office.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260530m" />
+  <link rel="stylesheet" href="styles.css?v=20260530n" />
 </head>
 <body>
   <div class="app">
@@ -64,12 +64,14 @@
           </h1>
           <p class="subtitle" id="header-subtitle" hidden></p>
         </div>
-        <nav class="tabs tabs-primary" role="tablist" aria-label="Main views">
-          <!-- Restore Dashboard tab: uncomment the button below
-          <button type="button" class="tab active" data-tab="dashboard" role="tab" aria-selected="true">Dashboard</button>
-          -->
-          <button type="button" class="book-hua-btn" id="book-hua-btn">BOOK HUA</button>
-        </nav>
+        <div class="nyx-action-container">
+          <button type="button" class="nyx-btn nyx-btn-primary" id="book-hua-btn">
+            <svg class="nyx-btn-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 2L2 12l10 10 10-10L12 2z" />
+            </svg>
+            BOOK NYX
+          </button>
+        </div>
       </div>
       <!-- Restore Event Data / Arrivals: uncomment this block
       <nav class="tabs tabs-secondary" id="import-data-tabs" role="tablist" aria-label="Import data">
