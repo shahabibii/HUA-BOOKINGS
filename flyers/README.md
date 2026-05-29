@@ -19,18 +19,25 @@ Drop PDF flyers here (optionally in **month folders**). The site reads every PDF
 
 When you push, a GitHub Action scans this folder and updates `data/flyers.json` for you. After Pages deploys (~1 minute), everyone sees the events — no upload needed.
 
-### Folder layout example
+### Folder layout (all 2026 months)
 
 ```
 flyers/
+  January 2026/
+  February 2026/
+  March 2026/
   April 2026/
   May 2026/
-    5.12 Spring Gala.pdf
-    5.20 Pool Party.pdf
   June 2026/
-    06.01 Summer Kickoff.pdf
-    6.15 Jazz Night.pdf
+  July 2026/
+  August 2026/
+  September 2026/
+  October 2026/
+  November 2026/
+  December 2026/
 ```
+
+Upload PDFs into the matching month folder. Example names:
 
 The month folder is only for your organization. The **date on the calendar comes from the file name**, not the folder name.
 
