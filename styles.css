@@ -61,6 +61,130 @@ body {
   z-index: 1000;
 }
 
+.nyx-menu-btn.is-open {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
+}
+
+.nyx-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 11.5rem;
+  padding: 6px;
+  border-radius: 4px;
+  background: rgba(18, 18, 18, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.45),
+    0 0 20px rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+}
+
+.nyx-menu-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nyx-menu-link {
+  display: block;
+  padding: 10px 14px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+  text-decoration: none;
+  text-align: left;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nyx-menu-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.nyx-menu-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 1px;
+}
+
+.nyx-menu-link.is-active {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.04);
+}
+
+.page-shell {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 1.5rem 0 2rem;
+}
+
+.page-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem 1.75rem;
+  text-align: center;
+}
+
+.page-panel h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.35rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+}
+
+.page-lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.app--page .top {
+  position: relative;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  margin: -0.5rem -1.25rem 0.5rem;
+  padding: 0.35rem 1.25rem 0.5rem;
+  background:
+    radial-gradient(ellipse 90% 120% at 50% -20%, rgba(61, 156, 240, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
+  border-bottom: 1px solid rgba(45, 58, 77, 0.35);
+}
+
+.app--page .top-hero {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.app--page .brand {
+  width: 100%;
+  max-width: 40rem;
+  margin: 0 auto;
+}
+
+.app--page .brand-logo {
+  text-align: center;
+}
+
+.app--page .brand-logo-link {
+  display: inline-block;
+  line-height: 0;
+  text-decoration: none;
+}
+
+.app--page .brand-logo-link:hover .logo-container {
+  filter: drop-shadow(0 4px 14px rgba(255, 255, 255, 0.12));
+}
+
 .nyx-menu-btn {
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid rgba(255, 255, 255, 0.12);
