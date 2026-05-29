@@ -58,6 +58,7 @@
   const FLYERS_CACHE_BUST = "20260531e";
   const TICKETS_MANIFEST = "data/tickets.json";
   const TICKETS_CACHE_BUST = "20260529b";
+  const TICKETS_REFRESH_MS = 5 * 60 * 1000;
   const LOW_TICKET_THRESHOLD = 10;
 
   /** Resolve a site-relative path (works with or without trailing slash on GitHub Pages). */
@@ -303,9 +304,10 @@
     return null;
   }
 
-  async function loadLiveTickets() {
+  async function loadLiveTickets(options = {}) {
     try {
-      const res = await fetch(assetUrl(`${TICKETS_MANIFEST}?v=${TICKETS_CACHE_BUST}`));
+      const bust = options.cacheBust ? Date.now() : TICKETS_CACHE_BUST;
+      const res = await fetch(assetUrl(`${TICKETS_MANIFEST}?v=${bust}`));
       if (!res.ok) return;
       const data = await res.json();
       const rows = Array.isArray(data?.events) ? data.events : [];
@@ -327,6 +329,11 @@
     } catch (err) {
       console.warn("Could not load live tickets:", err);
     }
+  }
+
+  async function refreshLiveTickets() {
+    await loadLiveTickets({ cacheBust: true });
+    renderCalendar();
   }
 
   function updateTicketsLegend() {
@@ -1918,5 +1925,17 @@
     renderPdfList();
     renderCalendar();
     renderPdfPreview();
+  });
+
+  setInterval(() => {
+    refreshLiveTickets().catch((err) => {
+      console.warn("Live ticket refresh failed:", err);
+    });
+  }, TICKETS_REFRESH_MS);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) {
+      refreshLiveTickets().catch(() => {});
+    }
   });
 })();
