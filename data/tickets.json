@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T20:07:32.3568760Z",
+  "updatedAt": "2026-05-29T20:10:38.4460627Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -214,7 +214,7 @@
     {
       "date": "2026-06-05",
       "sheetName": "06.05 Capital Grille W&D",
-      "ticketsAvailable": 12,
+      "ticketsAvailable": 8,
       "title": "Capital Grille W&D",
       "workbook": "June"
     },
