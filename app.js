@@ -49,7 +49,24 @@
   const PDF_STORE = "pdfs";
   const HOSTED_FLYERS_MANIFEST = "data/flyers.json";
   const HOSTED_FLYERS_BASE = "flyers/";
-  const FLYERS_CACHE_BUST = "20260531d";
+  const FLYERS_CACHE_BUST = "20260531e";
+
+  /** Resolve a site-relative path (works with or without trailing slash on GitHub Pages). */
+  function assetUrl(relativePath) {
+    return new URL(relativePath, window.location.href).href;
+  }
+
+  /** Encode folder/file names for URLs (apostrophes, ampersands, spaces, etc.). */
+  function encodePathSegment(segment) {
+    return encodeURIComponent(segment).replace(/[!'()*]/g, (ch) =>
+      "%" + ch.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")
+    );
+  }
+
+  function hostedFlyerUrl(hostedFile) {
+    const encoded = hostedFile.split("/").map(encodePathSegment).join("/");
+    return assetUrl(`${HOSTED_FLYERS_BASE}${encoded}`);
+  }
 
   function openPdfDb() {
     return new Promise((resolve, reject) => {
@@ -109,16 +126,20 @@
 
     if (ev.hostedFile) {
       try {
-        const url =
-          HOSTED_FLYERS_BASE +
-          ev.hostedFile.split("/").map((part) => encodeURIComponent(part)).join("/");
+        const url = hostedFlyerUrl(ev.hostedFile);
         const res = await fetch(url);
         if (res.ok) {
           blob = await res.blob();
           if (blob && blob.size) {
-            await putPdfBlob(ev.id, blob);
+            try {
+              await putPdfBlob(ev.id, blob);
+            } catch (cacheErr) {
+              console.warn("PDF preview cache skipped:", ev.hostedFile, cacheErr);
+            }
             return blob;
           }
+        } else {
+          console.warn("Hosted flyer fetch failed:", res.status, ev.hostedFile, url);
         }
       } catch (err) {
         console.warn("Could not fetch hosted flyer:", ev.hostedFile, err);
@@ -222,7 +243,7 @@
 
   async function loadHostedFlyers() {
     try {
-      const res = await fetch(`${HOSTED_FLYERS_MANIFEST}?v=${FLYERS_CACHE_BUST}`);
+      const res = await fetch(assetUrl(`${HOSTED_FLYERS_MANIFEST}?v=${FLYERS_CACHE_BUST}`));
       if (!res.ok) return;
       const data = await res.json();
       const files = Array.isArray(data?.files) ? data.files : [];
