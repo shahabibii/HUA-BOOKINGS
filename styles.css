@@ -1,5 +1,6 @@
 :root {
   --bg: #0f1419;
+  --header-bg: #121212;
   --surface: #1a222d;
   --surface2: #232d3b;
   --border: #2d3a4d;
@@ -64,7 +65,12 @@ body {
   align-items: center;
   justify-content: flex-start;
   text-align: center;
-  padding-top: 0.15rem;
+  margin: -1.5rem -1.25rem 1.5rem;
+  padding: 1.75rem 1.25rem 1.5rem;
+  background:
+    radial-gradient(ellipse 90% 120% at 50% -20%, rgba(61, 156, 240, 0.08) 0%, transparent 55%),
+    linear-gradient(180deg, var(--header-bg) 0%, var(--bg) 92%);
+  border-bottom: 1px solid rgba(45, 58, 77, 0.45);
 }
 
 .app--dashboard .top-hero {
@@ -77,6 +83,8 @@ body {
 
 .app--dashboard .brand {
   width: 100%;
+  max-width: 36rem;
+  margin: 0 auto;
 }
 
 .app--dashboard .brand h1,
@@ -89,13 +97,36 @@ body {
   line-height: 0;
 }
 
+.brand-logo-frame {
+  display: block;
+  width: min(100%, 28rem);
+  margin: 0 auto;
+  overflow: hidden;
+  /* Tight crop: logo PNG has wide empty margins */
+  aspect-ratio: 3.4 / 1;
+}
+
 .brand-logo img {
   display: block;
+  width: 118%;
+  max-width: none;
   height: auto;
-  width: auto;
-  max-height: 3.25rem;
-  max-width: min(100%, 14rem);
-  margin: 0 auto;
+  margin: -6% auto 0;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45));
+  opacity: 0.98;
+}
+
+@media (min-width: 640px) {
+  .brand-logo-frame {
+    width: min(100%, 32rem);
+    aspect-ratio: 3.2 / 1;
+  }
+
+  .brand-logo img {
+    width: 125%;
+    margin-top: -8%;
+  }
 }
 
 .brand h1 {
@@ -106,7 +137,7 @@ body {
 }
 
 .app--dashboard .tabs-primary {
-  margin-top: 0.65rem;
+  margin-top: 1rem;
 }
 
 .app--dashboard .tabs-secondary {
