@@ -98,6 +98,11 @@ body {
   justify-content: flex-end;
 }
 
+/* Import tabs removed from header — uncomment nav in index.html to restore */
+#import-data-tabs {
+  display: none !important;
+}
+
 /* Flyers / CSV: title + primary tabs left, import tabs right */
 .app:not(.app--dashboard) .top-hero {
   flex: 1 1 auto;
