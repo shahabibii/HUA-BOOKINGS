@@ -57,7 +57,7 @@
   const HOSTED_FLYERS_BASE = "flyers/";
   const FLYERS_CACHE_BUST = "20260531e";
   const TICKETS_MANIFEST = "data/tickets.json";
-  const TICKETS_CACHE_BUST = "20260529a";
+  const TICKETS_CACHE_BUST = "20260529b";
   const LOW_TICKET_THRESHOLD = 10;
 
   /** Resolve a site-relative path (works with or without trailing slash on GitHub Pages). */
@@ -258,6 +258,20 @@
       .trim();
   }
 
+  /** True when flyer title and ticket row refer to the same event (word overlap). */
+  function titlesRoughlyMatch(want, got) {
+    if (!want || !got) return false;
+    if (got === want || got.includes(want) || want.includes(got)) return true;
+    const wantTokens = want.split(/\s+/).filter(Boolean);
+    const gotTokens = got.split(/\s+/).filter(Boolean);
+    const [shorter, longer] =
+      wantTokens.length <= gotTokens.length
+        ? [wantTokens, gotTokens]
+        : [gotTokens, wantTokens];
+    const longSet = new Set(longer);
+    return shorter.every((t) => longSet.has(t));
+  }
+
   function rebuildTicketIndex() {
     ticketByKey.clear();
     for (const t of ticketEvents) {
@@ -277,7 +291,7 @@
     const sameDay = ticketEvents.filter((t) => t.date === ev.date && t.ticketsAvailable != null);
     for (const t of sameDay) {
       const got = normalizeForMatch(t.title);
-      if (got === want || got.includes(want) || want.includes(got)) {
+      if (titlesRoughlyMatch(want, got)) {
         return t.ticketsAvailable;
       }
     }

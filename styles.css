@@ -516,15 +516,21 @@ body {
 }
 
 .day-tickets {
-  font-size: 0.58rem;
+  display: inline-block;
+  margin-top: 1px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-size: 0.62rem;
   font-weight: 700;
-  line-height: 1.1;
-  color: var(--accent);
+  line-height: 1.2;
+  color: #1a1a2e;
+  background: #7ee8c8;
   letter-spacing: 0.02em;
 }
 
 .day-tickets.low {
-  color: #f0a060;
+  color: #1a1a2e;
+  background: #f0a060;
 }
 
 .day-events {
