@@ -689,6 +689,8 @@
       if (dayEvents.length && !outside) {
         const wrap = document.createElement("div");
         wrap.className = "day-events-wrap";
+        const ticketsFoot = document.createElement("div");
+        ticketsFoot.className = "day-tickets-foot";
         for (const item of dayEvents) {
           const block = document.createElement("div");
           block.className = "day-event-block";
@@ -697,17 +699,18 @@
           titleEl.textContent = item.title;
           titleEl.title = item.title;
           block.appendChild(titleEl);
+          wrap.appendChild(block);
           const tickets = ticketsAvailableForEvent(item);
           if (tickets != null) {
             const ticketEl = document.createElement("span");
             ticketEl.className = "day-tickets";
             if (tickets <= LOW_TICKET_THRESHOLD) ticketEl.classList.add("low");
             ticketEl.textContent = `${tickets} avail`;
-            block.appendChild(ticketEl);
+            ticketsFoot.appendChild(ticketEl);
           }
-          wrap.appendChild(block);
         }
         btn.appendChild(wrap);
+        if (ticketsFoot.childNodes.length) btn.appendChild(ticketsFoot);
       }
 
       if (!outside) {
