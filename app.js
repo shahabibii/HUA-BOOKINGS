@@ -561,6 +561,7 @@
 
       const dayEvents = !outside ? eventsOnDate(iso) : [];
       if (dayEvents.length) btn.classList.add("has-event");
+      if (dayEvents.length > 1) btn.classList.add("has-multi-event");
 
       const num = document.createElement("span");
       num.className = "day-num";

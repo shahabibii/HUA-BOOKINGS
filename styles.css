@@ -8,6 +8,7 @@
   --accent: #3d9cf0;
   --accent-dim: rgba(61, 156, 240, 0.15);
   --event: #c47cff;
+  --event-alt: #9b5de5;
   --event-dim: rgba(196, 124, 255, 0.2);
   --success: #4ade80;
   --radius: 10px;
@@ -479,6 +480,10 @@ body {
   min-height: 6.25rem;
 }
 
+.day-cell.has-multi-event {
+  box-shadow: inset 0 -3px 0 var(--event), inset 0 -7px 0 var(--event-alt);
+}
+
 .day-num {
   font-size: 0.85rem;
   font-weight: 600;
@@ -538,8 +543,9 @@ body {
   font-size: 0.75rem;
   color: var(--muted);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.35rem 0.75rem;
   width: 100%;
   box-sizing: border-box;
 }
@@ -552,6 +558,19 @@ body {
 
 .dot.event {
   background: var(--event);
+}
+
+.legend-bars {
+  display: inline-block;
+  width: 1.1rem;
+  height: 0.55rem;
+  box-shadow: inset 0 -2px 0 var(--event);
+  border-radius: 1px;
+  flex-shrink: 0;
+}
+
+.legend-bars.multi {
+  box-shadow: inset 0 -2px 0 var(--event), inset 0 -5px 0 var(--event-alt);
 }
 
 .flyer-preview-col {
