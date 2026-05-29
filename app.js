@@ -58,6 +58,7 @@
   const FLYERS_CACHE_BUST = "20260531e";
   const TICKETS_MANIFEST = "data/tickets.json";
   const BOOKING_RECIPIENTS_MANIFEST = "data/booking-recipients.json";
+  const EMAIL_ACTIONS_MANIFEST = "data/email-actions.json";
   const CANCELED_EVENTS_MANIFEST = "data/canceled-events.json";
   const TICKETS_CACHE_BUST = "20260530g";
   const TICKETS_REFRESH_MS = 5 * 60 * 1000;
@@ -195,6 +196,13 @@
 
   const HUA_BOOKING_SUBJECT = "HUA BOOKING";
 
+  /** @type {{ id: string, label: string, subject: string, kind: string, bodyPlain?: string, bodyHtml?: string }[]} */
+  let emailActions = [];
+
+  const DEFAULT_EMAIL_ACTIONS = [
+    { id: "book-hua", label: "BOOK HUA", subject: HUA_BOOKING_SUBJECT, kind: "booking-form" },
+  ];
+
   /** @type {{ to: string[] }} */
   let bookingRecipients = { to: [] };
 
@@ -226,6 +234,26 @@
     }
   }
 
+  async function loadEmailActions() {
+    try {
+      const res = await fetch(assetUrl(`${EMAIL_ACTIONS_MANIFEST}?v=${TICKETS_CACHE_BUST}`));
+      if (!res.ok) {
+        emailActions = DEFAULT_EMAIL_ACTIONS.slice();
+        return;
+      }
+      const data = await res.json();
+      emailActions = Array.isArray(data?.actions) && data.actions.length
+        ? data.actions
+        : DEFAULT_EMAIL_ACTIONS.slice();
+    } catch {
+      emailActions = DEFAULT_EMAIL_ACTIONS.slice();
+    }
+  }
+
+  function getEmailAction(actionId) {
+    return emailActions.find((action) => action.id === actionId) || null;
+  }
+
   function getHuaBookingToRecipients() {
     return bookingRecipients.to;
   }
@@ -243,8 +271,8 @@
     return to.length ? `To: ${to.join(", ")}` : "";
   }
 
-  function buildHuaBookingComposeParams() {
-    const params = new URLSearchParams({ subject: HUA_BOOKING_SUBJECT });
+  function buildEmailComposeParams(subject) {
+    const params = new URLSearchParams({ subject: subject || "" });
     const to = getHuaBookingToRecipients();
     if (to.length) params.set("to", formatRecipientsForUrl(to));
     return params;
@@ -1142,6 +1170,101 @@
     );
   }
 
+  function wrapPlainEmailHtml(plainBody) {
+    const htmlBody = String(plainBody || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\n/g, "<br>");
+    return (
+      "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">" +
+      "<meta name=\"Generator\" content=\"HUA Bookings\"></head>" +
+      "<body style=\"margin:0;padding:12px;font-family:Calibri,Arial,sans-serif;font-size:11pt;\">" +
+      "<!--StartFragment-->" +
+      htmlBody +
+      "<!--EndFragment--></body></html>"
+    );
+  }
+
+  function resolveEmailPayload(actionId, arrival, event) {
+    const action = getEmailAction(actionId);
+    if (!action) return null;
+
+    if (action.kind === "booking-form") {
+      return {
+        action,
+        subject: action.subject || HUA_BOOKING_SUBJECT,
+        plain: buildHuaBookingEmailBody(arrival, event),
+        html: buildHuaBookingClipboardHtml(arrival, event),
+        downloadPrefix: "HUA-Booking",
+        useLeadIdInFilename: true,
+        isBookingForm: true,
+      };
+    }
+
+    const plain = String(action.bodyPlain || "");
+    const html = action.bodyHtml
+      ? wrapPlainEmailHtml(action.bodyHtml)
+      : wrapPlainEmailHtml(plain);
+    const slug = String(action.id || "email")
+      .replace(/[^\w.-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    return {
+      action,
+      subject: action.subject || "",
+      plain,
+      html,
+      downloadPrefix: slug || "email",
+      useLeadIdInFilename: false,
+      isBookingForm: false,
+    };
+  }
+
+  function emailPayloadHasBody(payload) {
+    if (!payload) return false;
+    if (payload.isBookingForm) return true;
+    return Boolean(String(payload.plain || "").trim() || String(payload.action?.bodyHtml || "").trim());
+  }
+
+  const EMAIL_ACTION_ICON =
+    '<svg class="nyx-btn-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M12 2L2 12l10 10 10-10L12 2z" /></svg>';
+
+  function renderEmailActionButtons() {
+    const bar = document.getElementById("email-action-bar");
+    if (!bar) return;
+    bar.innerHTML = "";
+    for (const action of emailActions) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "nyx-btn email-action-btn";
+      btn.dataset.actionId = action.id;
+      btn.innerHTML = EMAIL_ACTION_ICON + escapeHtml(action.label || action.id);
+      btn.addEventListener("click", () => {
+        const { arrival, event } = getBookingContextForBookHua();
+        openEmailActionChooser(action.id, arrival, event);
+      });
+      bar.appendChild(btn);
+    }
+  }
+
+  function updateEmailModalUi(payload) {
+    if (!payload) return;
+    const title = document.getElementById("book-hua-modal-title");
+    if (title) title.textContent = "Send " + (payload.action?.label || "email");
+
+    document.querySelectorAll("[data-email-subject]").forEach((el) => {
+      el.textContent = payload.subject || "";
+    });
+
+    const prefillStep = document.getElementById("book-hua-step-prefill");
+    if (prefillStep) prefillStep.hidden = !payload.isBookingForm;
+
+    const bodyPending = document.getElementById("email-modal-body-pending");
+    if (bodyPending) bodyPending.hidden = emailPayloadHasBody(payload);
+  }
+
   function buildHuaBookingEml(subject, plainBody, htmlBody) {
     const boundary = "----=_HUA_Booking_" + Date.now();
     const to = getHuaBookingToRecipients();
@@ -1173,19 +1296,21 @@
     ].join("\n");
   }
 
-  function downloadHuaBookingEml(arrival, event) {
-    const subject = HUA_BOOKING_SUBJECT;
-    const plain = buildHuaBookingEmailBody(arrival, event);
-    const html = buildHuaBookingEmailHtml(arrival, event);
-    const eml = buildHuaBookingEml(subject, plain, html);
+  function downloadEmailEml(arrival, payload) {
+    if (!payload) return;
+    const eml = buildHuaBookingEml(payload.subject, payload.plain, payload.html);
     const blob = new Blob([eml], { type: "message/rfc822" });
-    const leadPart = String(arrival.leadId || "booking")
-      .replace(/[^\w.-]+/g, "_")
-      .slice(0, 40);
+    let filename = payload.downloadPrefix || "email";
+    if (payload.useLeadIdInFilename) {
+      const leadPart = String(arrival?.leadId || "booking")
+        .replace(/[^\w.-]+/g, "_")
+        .slice(0, 40);
+      filename = `${filename}-${leadPart}`;
+    }
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `HUA-Booking-${leadPart}.eml`;
+    a.download = `${filename}.eml`;
     a.rel = "noopener";
     document.body.appendChild(a);
     a.click();
@@ -1193,13 +1318,15 @@
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   }
 
-  let lastBookHuaHtml = "";
-  let lastBookHuaPlain = "";
-  let pendingBookHua = null;
+  let lastEmailHtml = "";
+  let lastEmailPlain = "";
+  let pendingEmailAction = null;
   let outlookWebWindow = null;
   let lastOutlookWebOpenAt = 0;
+
   function getOutlookComposeUrl() {
-    return `https://outlook.office.com/mail/deeplink/compose?${buildHuaBookingComposeParams().toString()}`;
+    const subject = pendingEmailAction?.payload?.subject || HUA_BOOKING_SUBJECT;
+    return `https://outlook.office.com/mail/deeplink/compose?${buildEmailComposeParams(subject).toString()}`;
   }
 
   function openOutlookWebComposeOnce() {
@@ -1258,7 +1385,7 @@
     }
   }
 
-  function showBookHuaView(view, copied) {
+  function showEmailActionView(view, copied) {
     const modal = document.getElementById("book-hua-modal");
     const chooseView = document.getElementById("book-hua-view-choose");
     const webView = document.getElementById("book-hua-view-web");
@@ -1271,8 +1398,11 @@
     if (desktopView) desktopView.hidden = view !== "desktop";
 
     if (view === "web" && status && copied !== undefined) {
+      const hasBody = emailPayloadHasBody(pendingEmailAction?.payload);
       status.textContent = copied
-        ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
+        ? hasBody
+          ? "The email content is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
+          : "Nothing to paste yet — body template not configured. You can still send with subject and To filled."
         : "Copy failed in this browser. Use Copy template again, or download the .eml file instead.";
     }
 
@@ -1284,47 +1414,53 @@
     if (modal) modal.hidden = true;
   }
 
-  function openBookHuaChooser(arrival, event) {
-    pendingBookHua = { arrival, event };
-    lastBookHuaHtml = buildHuaBookingClipboardHtml(arrival, event);
-    lastBookHuaPlain = buildHuaBookingEmailBody(arrival, event);
+  function openEmailActionChooser(actionId, arrival, event) {
+    const payload = resolveEmailPayload(actionId, arrival, event);
+    if (!payload) return;
+    pendingEmailAction = { actionId, arrival, event, payload };
+    lastEmailHtml = payload.html;
+    lastEmailPlain = payload.plain;
     updateBookHuaRecipientsNote();
-    showBookHuaView("choose");
+    updateEmailModalUi(payload);
+    showEmailActionView("choose");
   }
 
-  async function launchBookHuaWeb() {
-    if (!pendingBookHua) return;
+  async function launchEmailActionWeb() {
+    if (!pendingEmailAction) return;
     const webBtn = document.getElementById("book-hua-choose-web");
     if (webBtn) webBtn.disabled = true;
 
     openOutlookWebComposeOnce();
-    showBookHuaView("web");
+    showEmailActionView("web");
     const status = document.getElementById("book-hua-modal-copy-status");
     if (status) {
       status.textContent =
-        "Outlook is opening in another tab (first load can take 10–30 seconds). Copying the booking form…";
+        "Outlook is opening in another tab (first load can take 10–30 seconds). Copying the email content…";
     }
 
-    const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, lastBookHuaPlain);
+    const copied = await copyHuaBookingHtmlToClipboard(lastEmailHtml, lastEmailPlain);
     if (status) {
+      const hasBody = emailPayloadHasBody(pendingEmailAction.payload);
       status.textContent = copied
-        ? "The booking form is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
+        ? hasBody
+          ? "The email content is copied — paste it in Outlook (Cmd+V or Ctrl+V)."
+          : "Nothing to paste yet — body template not configured. You can still send with subject and To filled."
         : "Copy failed in this browser. Use Copy template again, or download the .eml file instead.";
     }
     if (webBtn) webBtn.disabled = false;
   }
 
-  function launchBookHuaDesktop() {
-    if (!pendingBookHua) return;
-    const { arrival, event } = pendingBookHua;
-    downloadHuaBookingEml(arrival, event);
-    showBookHuaView("desktop");
+  function launchEmailActionDesktop() {
+    if (!pendingEmailAction) return;
+    const { arrival, payload } = pendingEmailAction;
+    downloadEmailEml(arrival, payload);
+    showEmailActionView("desktop");
   }
 
-  function launchBookHuaEmlOnly() {
-    if (!pendingBookHua) return;
-    const { arrival, event } = pendingBookHua;
-    downloadHuaBookingEml(arrival, event);
+  function launchEmailActionEmlOnly() {
+    if (!pendingEmailAction) return;
+    const { arrival, payload } = pendingEmailAction;
+    downloadEmailEml(arrival, payload);
     hideBookHuaModal();
   }
 
@@ -1350,7 +1486,7 @@
   async function openHuaBookingEmail(arrival) {
     if (!arrival) return;
     const event = pickEventForBookingEmail(arrival);
-    openBookHuaChooser(arrival, event);
+    openEmailActionChooser("book-hua", arrival, event);
   }
 
   function escapeHtml(s) {
@@ -1624,26 +1760,18 @@
 
   applyTabView("dashboard");
 
-  const bookHuaBtn = document.getElementById("book-hua-btn");
-  if (bookHuaBtn) {
-    bookHuaBtn.addEventListener("click", () => {
-      const { arrival, event } = getBookingContextForBookHua();
-      openBookHuaChooser(arrival, event);
-    });
-  }
-
   const bookHuaChooseWeb = document.getElementById("book-hua-choose-web");
   const bookHuaChooseDesktop = document.getElementById("book-hua-choose-desktop");
   const bookHuaChooseEml = document.getElementById("book-hua-choose-eml");
   const bookHuaChooseCancel = document.getElementById("book-hua-choose-cancel");
   if (bookHuaChooseWeb) {
-    bookHuaChooseWeb.addEventListener("click", () => void launchBookHuaWeb());
+    bookHuaChooseWeb.addEventListener("click", () => void launchEmailActionWeb());
   }
   if (bookHuaChooseDesktop) {
-    bookHuaChooseDesktop.addEventListener("click", () => launchBookHuaDesktop());
+    bookHuaChooseDesktop.addEventListener("click", () => launchEmailActionDesktop());
   }
   if (bookHuaChooseEml) {
-    bookHuaChooseEml.addEventListener("click", () => launchBookHuaEmlOnly());
+    bookHuaChooseEml.addEventListener("click", () => launchEmailActionEmlOnly());
   }
   if (bookHuaChooseCancel) {
     bookHuaChooseCancel.addEventListener("click", () => hideBookHuaModal());
@@ -1655,9 +1783,12 @@
   const bookHuaModalClose = document.getElementById("book-hua-modal-close");
   if (bookHuaCopyAgain) {
     bookHuaCopyAgain.addEventListener("click", async () => {
-      if (!lastBookHuaHtml) return;
-      const plainBody = lastBookHuaPlain || buildHuaBookingEmailBody(emptyArrivalRecord(), null);
-      const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, plainBody);
+      if (!lastEmailHtml) return;
+      const plainBody =
+        lastEmailPlain ||
+        pendingEmailAction?.payload?.plain ||
+        buildHuaBookingEmailBody(emptyArrivalRecord(), null);
+      const copied = await copyHuaBookingHtmlToClipboard(lastEmailHtml, plainBody);
       const status = document.getElementById("book-hua-modal-copy-status");
       if (status) {
         status.textContent = copied
@@ -1670,19 +1801,19 @@
     bookHuaOpenWeb.addEventListener("click", () => openOutlookWebComposeOnce());
   }
   if (bookHuaBackWeb) {
-    bookHuaBackWeb.addEventListener("click", () => showBookHuaView("choose"));
+    bookHuaBackWeb.addEventListener("click", () => showEmailActionView("choose"));
   }
   const bookHuaRedownloadEml = document.getElementById("book-hua-redownload-eml");
   const bookHuaBackDesktop = document.getElementById("book-hua-back-desktop");
   const bookHuaModalCloseDesktop = document.getElementById("book-hua-modal-close-desktop");
   if (bookHuaRedownloadEml) {
     bookHuaRedownloadEml.addEventListener("click", () => {
-      if (!pendingBookHua) return;
-      downloadHuaBookingEml(pendingBookHua.arrival, pendingBookHua.event);
+      if (!pendingEmailAction) return;
+      downloadEmailEml(pendingEmailAction.arrival, pendingEmailAction.payload);
     });
   }
   if (bookHuaBackDesktop) {
-    bookHuaBackDesktop.addEventListener("click", () => showBookHuaView("choose"));
+    bookHuaBackDesktop.addEventListener("click", () => showEmailActionView("choose"));
   }
   if (bookHuaModalCloseDesktop) {
     bookHuaModalCloseDesktop.addEventListener("click", () => hideBookHuaModal());
@@ -2023,7 +2154,14 @@
   renderPdfList();
   renderCalendar();
   renderPdfPreview();
-  Promise.all([loadCanceledEvents(), loadHostedFlyers(), loadLiveTickets(), loadBookingRecipients()]).then(() => {
+  Promise.all([
+    loadCanceledEvents(),
+    loadHostedFlyers(),
+    loadLiveTickets(),
+    loadBookingRecipients(),
+    loadEmailActions(),
+  ]).then(() => {
+    renderEmailActionButtons();
     renderPdfList();
     renderCalendar();
     renderPdfPreview();

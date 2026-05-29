@@ -63,7 +63,7 @@ body {
   min-width: min(100%, 280px);
 }
 
-/* Dashboard: compact header — logo + BOOK HUA, then calendar */
+/* Dashboard: compact header — logo + email action buttons, then calendar */
 .app--dashboard .top {
   position: relative;
   flex-direction: column;
@@ -130,24 +130,6 @@ body {
     max-width: 300px;
     width: min(100%, 300px);
   }
-
-  .app--dashboard .top-hero {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 1.25rem;
-  }
-
-  .app--dashboard .brand {
-    width: auto;
-    flex: 0 1 auto;
-  }
-
-  .app--dashboard .hua-action-container {
-    flex: 0 0 auto;
-    margin-top: 0;
-    padding: 0;
-  }
 }
 
 .brand h1 {
@@ -157,16 +139,37 @@ body {
   letter-spacing: -0.02em;
 }
 
-.app--dashboard .hua-action-container {
-  margin-top: 0;
-}
-
-.hua-action-container {
+.email-action-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  padding: 6px 0;
-  background: transparent;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.45rem 0 0;
+}
+
+.email-action-btn {
+  padding: 10px 14px;
+  font-size: 10.5px;
+  letter-spacing: 1.1px;
+  white-space: nowrap;
+}
+
+@media (min-width: 900px) {
+  .email-action-btn {
+    padding: 11px 18px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 640px) {
+  .email-action-btn {
+    padding: 9px 12px;
+    font-size: 9.5px;
+    letter-spacing: 0.9px;
+  }
 }
 
 .nyx-btn {
