@@ -135,6 +135,10 @@ body {
 
 .app--dashboard .tabs-primary {
   margin-top: 1rem;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  padding: 0;
 }
 
 .app--dashboard .tabs-secondary {
