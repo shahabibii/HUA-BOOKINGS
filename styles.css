@@ -142,7 +142,7 @@ body {
 .email-action-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: stretch;
+  align-items: center;
   justify-content: center;
   gap: 0.35rem;
   width: 100%;
@@ -152,32 +152,32 @@ body {
 
 .email-action-btn {
   box-sizing: border-box;
-  flex: 0 0 6.85rem;
-  width: 6.85rem;
-  min-height: 2.15rem;
-  padding: 7px 4px;
-  font-size: 8.5px;
-  letter-spacing: 0.75px;
-  line-height: 1.15;
+  flex: 0 0 8.1rem;
+  width: 8.1rem;
+  padding: 8px 6px;
+  font-size: 9px;
+  letter-spacing: 0.65px;
+  line-height: 1;
   text-align: center;
   justify-content: center;
-  white-space: normal;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   gap: 4px;
 }
 
 .email-action-btn .nyx-btn-icon {
   width: 9px;
   height: 9px;
+  flex-shrink: 0;
 }
 
 @media (min-width: 900px) {
   .email-action-btn {
-    flex-basis: 7.15rem;
-    width: 7.15rem;
-    min-height: 2.25rem;
-    padding: 8px 5px;
-    font-size: 9px;
-    letter-spacing: 0.8px;
+    flex-basis: 8.35rem;
+    width: 8.35rem;
+    padding: 9px 7px;
+    font-size: 9.5px;
+    letter-spacing: 0.7px;
   }
 }
 
@@ -187,12 +187,11 @@ body {
   }
 
   .email-action-btn {
-    flex-basis: 6.35rem;
-    width: 6.35rem;
-    min-height: 2rem;
-    padding: 6px 3px;
-    font-size: 7.5px;
-    letter-spacing: 0.65px;
+    flex-basis: 7.4rem;
+    width: 7.4rem;
+    padding: 7px 5px;
+    font-size: 8px;
+    letter-spacing: 0.55px;
   }
 
   .email-action-btn .nyx-btn-icon {
