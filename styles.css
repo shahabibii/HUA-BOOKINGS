@@ -498,12 +498,16 @@ body {
 .day-events-wrap {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   width: 100%;
   min-width: 0;
   flex: 1;
   min-height: 0;
-  margin-top: 6px;
+  margin-top: 10px;
+}
+
+.day-cell.has-multi-event .day-events-wrap {
+  gap: 11px;
 }
 
 .day-event-block {
