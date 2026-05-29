@@ -681,93 +681,6 @@
     },
   ];
 
-  /** Outlook Web template — bold black/white table (22 rows). */
-  const HUA_BOOKING_WEB_ROWS = [
-    { label: "LEAD NUMBER:", key: "leadNumber" },
-    { label: "EVENT DATE:", key: "eventDate" },
-    { label: "EVENT NAME:", key: "eventName" },
-    { label: "TOUR DATE:", key: "tourDate" },
-    { label: "TOUR TIME:", key: "tourTime" },
-    { label: "FIRST & LAST NAME:", key: "guestName" },
-    { label: "TYPE OF TOUR", key: "tourType" },
-    { label: "DECILE/LOYALTY:", key: "decileLoyalty" },
-    { label: "SPOKE TO:", key: "spokeTo" },
-    { label: "FULL RES. ARRIVAL DATE:", key: "arrivalDate" },
-    { label: "CELL NUMBER:", key: "cellNumber" },
-    { label: "EMAIL:", key: "email" },
-    { label: "MARRIED/SINGLE/COHAB:", key: "marriedStatus" },
-    { label: "TOTAL NUMBER OF PEOPLE (Adults and Children)", key: "totalPeople" },
-    { label: "TOTAL COST QUOTED TO GUEST:", key: "totalCost" },
-    { label: "PAYMENT COLLECTED?", key: "paymentCollected" },
-    { label: "PROPERTY & ROOM NUMBER:", key: "property" },
-    { label: "FULL RES.CHECK OUT DATE:", key: "checkoutDate" },
-    { label: "ADDITIONAL GIFTING?:", key: "additionalGifting" },
-    { label: "SPECIAL OCCASION?:", key: "specialOccasion" },
-    { label: "ALLERGIES/ADA REQUEST:", key: "allergies" },
-    { label: "OTHER IMPORTANT COMMENTS:", key: "otherComments" },
-  ];
-
-  const WEB_BOOKING_FONT =
-    "font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#000000;";
-  const WEB_ROW_BORDER =
-    "border-bottom:1pt solid #D0D0D0;mso-border-bottom-alt:solid #D0D0D0 0.75pt;";
-
-  function buildHuaBookingWebPlainBody(arrival, event) {
-    const f = getHuaBookingFields(arrival, event);
-    return HUA_BOOKING_WEB_ROWS.map((row) => {
-      const v = bookingFieldValue(f, row.key);
-      return v ? `${row.label} ${v}` : row.label;
-    }).join("\r\n");
-  }
-
-  function bookingWebHtmlRow(label, value, isLast) {
-    const rowBorder = isLast ? "" : WEB_ROW_BORDER;
-    const labelHtml =
-      `<b><span style="font-size:11.0pt;font-family:Calibri,sans-serif;font-weight:bold;">` +
-      `${escapeHtml(label)}</span></b>`;
-    const valueHtml = value
-      ? `<span style="font-size:11.0pt;font-family:Calibri,sans-serif;font-weight:normal;">` +
-        ` ${escapeHtml(value)}</span>`
-      : "";
-    return (
-      `<tr>` +
-      `<td width="640" valign="top" style="padding:8pt 12pt;${rowBorder}${WEB_BOOKING_FONT}">` +
-      `<p style="margin:0;mso-line-height-rule:exactly;line-height:normal;">${labelHtml}${valueHtml}</p>` +
-      `</td></tr>`
-    );
-  }
-
-  function buildHuaBookingWebTableFragment(arrival, event) {
-    const f = getHuaBookingFields(arrival, event);
-    const rows = HUA_BOOKING_WEB_ROWS.map((row, idx) =>
-      bookingWebHtmlRow(
-        row.label,
-        bookingFieldValue(f, row.key),
-        idx === HUA_BOOKING_WEB_ROWS.length - 1
-      )
-    );
-    return (
-      `<table border="2" cellspacing="0" cellpadding="0" width="640" ` +
-      `style="border-collapse:collapse;width:640px;border:2pt solid #000000;` +
-      `mso-table-lspace:0pt;mso-table-rspace:0pt;mso-yfti-tbllook:1184;">` +
-      rows.join("") +
-      `</table>`
-    );
-  }
-
-  /** Black/white table for Outlook Web paste (matches booking form screenshot). */
-  function buildHuaBookingWebHtml(arrival, event) {
-    const fragment = buildHuaBookingWebTableFragment(arrival, event);
-    return (
-      "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">" +
-      "<meta name=\"Generator\" content=\"HUA Bookings\"></head>" +
-      "<body style=\"margin:0;padding:12px;background:#ffffff;\">" +
-      "<!--StartFragment-->" +
-      fragment +
-      "<!--EndFragment--></body></html>"
-    );
-  }
-
   function wrapCfHtml(fragment) {
     const htmlStart = "<html>\r\n<body>\r\n<!--StartFragment-->";
     const htmlEnd = "<!--EndFragment-->\r\n</body>\r\n</html>";
@@ -992,6 +905,20 @@
     );
   }
 
+  function buildHuaBookingClipboardHtml(arrival, event) {
+    const fullHtml = buildHuaBookingEmailHtml(arrival, event);
+    const tableMatch = fullHtml.match(/<table[\s\S]*<\/table>/i);
+    const fragment = tableMatch ? tableMatch[0] : fullHtml;
+    return (
+      "<!DOCTYPE html><html><head><meta charset=\"UTF-8\">" +
+      "<meta name=\"Generator\" content=\"HUA Bookings\"></head>" +
+      "<body style=\"margin:0;padding:12px;background:#ffffff;\">" +
+      "<!--StartFragment-->" +
+      fragment +
+      "<!--EndFragment--></body></html>"
+    );
+  }
+
   function buildHuaBookingEml(subject, plainBody, htmlBody) {
     const boundary = "----=_HUA_Booking_" + Date.now();
     return [
@@ -1138,8 +1065,8 @@
 
   function openBookHuaChooser(arrival, event) {
     pendingBookHua = { arrival, event };
-    lastBookHuaHtml = buildHuaBookingWebHtml(arrival, event);
-    lastBookHuaPlain = buildHuaBookingWebPlainBody(arrival, event);
+    lastBookHuaHtml = buildHuaBookingClipboardHtml(arrival, event);
+    lastBookHuaPlain = buildHuaBookingEmailBody(arrival, event);
     showBookHuaView("choose");
   }
 
@@ -1493,7 +1420,7 @@
   if (bookHuaCopyAgain) {
     bookHuaCopyAgain.addEventListener("click", async () => {
       if (!lastBookHuaHtml) return;
-      const plainBody = lastBookHuaPlain || buildHuaBookingWebPlainBody(emptyArrivalRecord(), null);
+      const plainBody = lastBookHuaPlain || buildHuaBookingEmailBody(emptyArrivalRecord(), null);
       const copied = await copyHuaBookingHtmlToClipboard(lastBookHuaHtml, plainBody);
       const status = document.getElementById("book-hua-modal-copy-status");
       if (status) {
