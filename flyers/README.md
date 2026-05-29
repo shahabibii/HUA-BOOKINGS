@@ -4,7 +4,7 @@ Drop PDF flyers here (optionally in **month folders**). The site reads every PDF
 
 ## Add flyers for a month
 
-1. Create or open a month folder, for example `flyers/june/` or `flyers/may/`.
+1. Create or open a month folder, for example `flyers/June 2026/` or `flyers/May 2026/`.
 2. Copy all PDFs for that month into the folder.
 3. Name each file with **month.day** and the **event name** (year is optional):
 
@@ -23,10 +23,11 @@ When you push, a GitHub Action scans this folder and updates `data/flyers.json` 
 
 ```
 flyers/
-  may/
-    05.12 Spring Gala.pdf
+  April 2026/
+  May 2026/
+    5.12 Spring Gala.pdf
     5.20 Pool Party.pdf
-  june/
+  June 2026/
     06.01 Summer Kickoff.pdf
     6.15 Jazz Night.pdf
 ```
