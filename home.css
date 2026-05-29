@@ -85,8 +85,29 @@ body.home-body {
   z-index: 20;
 }
 
-.home-logo-drift {
+.home-logo-link {
+  display: block;
   width: clamp(280px, 65vw, 680px);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: filter 0.3s ease, transform 0.3s ease;
+}
+
+.home-logo-link:hover .home-logo-svg {
+  filter:
+    drop-shadow(0 8px 30px rgba(0, 0, 0, 0.85))
+    drop-shadow(0 0 32px rgba(180, 180, 220, 0.22));
+}
+
+.home-logo-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 8px;
+}
+
+.home-logo-drift {
+  width: 100%;
   animation: onyxFloat 6s ease-in-out infinite;
 }
 
