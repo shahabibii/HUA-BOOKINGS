@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-29T17:43:25.9952218Z",
+  "updatedAt": "2026-05-29T17:46:27.8918707Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -249,7 +249,7 @@
     {
       "date": "2026-06-10",
       "sheetName": "06.10 Sip 'n Splash at Evermore",
-      "ticketsAvailable": 29,
+      "ticketsAvailable": 25,
       "title": "Sip 'n Splash at Evermore",
       "workbook": "June"
     },
