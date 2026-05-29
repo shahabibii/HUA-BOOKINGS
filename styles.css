@@ -68,9 +68,9 @@ body {
   margin: -1.5rem -1.25rem 1.5rem;
   padding: 1.75rem 1.25rem 1.5rem;
   background:
-    radial-gradient(ellipse 90% 120% at 50% -20%, rgba(61, 156, 240, 0.08) 0%, transparent 55%),
-    linear-gradient(180deg, var(--header-bg) 0%, var(--bg) 92%);
-  border-bottom: 1px solid rgba(45, 58, 77, 0.45);
+    radial-gradient(ellipse 90% 120% at 50% -20%, rgba(61, 156, 240, 0.06) 0%, transparent 55%),
+    linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
+  border-bottom: 1px solid rgba(45, 58, 77, 0.35);
 }
 
 .app--dashboard .top-hero {
@@ -83,7 +83,7 @@ body {
 
 .app--dashboard .brand {
   width: 100%;
-  max-width: 36rem;
+  max-width: 40rem;
   margin: 0 auto;
 }
 
@@ -99,33 +99,26 @@ body {
 
 .brand-logo-frame {
   display: block;
-  width: min(100%, 28rem);
+  width: min(100%, 24rem);
   margin: 0 auto;
-  overflow: hidden;
-  /* Tight crop: logo PNG has wide empty margins */
-  aspect-ratio: 3.4 / 1;
 }
 
 .brand-logo img {
   display: block;
-  width: 118%;
-  max-width: none;
+  width: 100%;
   height: auto;
-  margin: -6% auto 0;
-  mix-blend-mode: screen;
-  filter: drop-shadow(0 4px 18px rgba(0, 0, 0, 0.45));
-  opacity: 0.98;
+  filter: drop-shadow(0 3px 20px rgba(0, 0, 0, 0.4));
 }
 
 @media (min-width: 640px) {
   .brand-logo-frame {
-    width: min(100%, 32rem);
-    aspect-ratio: 3.2 / 1;
+    width: min(100%, 30rem);
   }
+}
 
-  .brand-logo img {
-    width: 125%;
-    margin-top: -8%;
+@media (min-width: 900px) {
+  .brand-logo-frame {
+    width: min(100%, 36rem);
   }
 }
 
