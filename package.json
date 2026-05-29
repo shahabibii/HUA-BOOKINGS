@@ -1,0 +1,7 @@
+{
+  "name": "hua-bookings",
+  "private": true,
+  "scripts": {
+    "update-flyers": "node scripts/generate-flyers-manifest.js"
+  }
+}

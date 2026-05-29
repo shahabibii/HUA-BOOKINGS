@@ -281,6 +281,42 @@ body {
   margin: 0.25rem 0;
 }
 
+.file-list-section {
+  list-style: none;
+  margin-left: -1.1rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.file-list-hint {
+  list-style: none;
+  margin-left: -1.1rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.flyer-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+  margin-right: 0.35rem;
+  vertical-align: middle;
+}
+
+.flyer-badge.hosted {
+  background: rgba(78, 167, 46, 0.2);
+  color: #7dd957;
+}
+
+.flyer-badge.local {
+  background: rgba(120, 160, 255, 0.15);
+  color: #9bb8ff;
+}
+
 .csv-status {
   margin: 0.6rem 0 0;
   font-size: 0.85rem;

@@ -39,5 +39,8 @@ Notes
 - This project is a copy of event-arrival-platform, rebranded as HUA BOOKINGS. Future work happens here.
 - The original project folder is unchanged: event-arrival-platform
 - Updates: change files locally, then: git add . && git commit -m "Update" && git push
-- CSV/PDF data each person uploads stays in their browser only (localStorage), not in GitHub.
+- CSV data each person uploads stays in their browser only (localStorage), not in GitHub.
+- Event flyers: drop PDFs into flyers/may/, flyers/june/, etc. (named like 06.01 Spring Gala.pdf).
+  Push to GitHub — a workflow auto-builds data/flyers.json. Or run: npm run update-flyers
+- Extra flyer uploads in the browser stay local only (localStorage + IndexedDB).
 - Browser storage keys are separate from the old site (hua_bookings_*), so data does not mix with event-arrival-platform.

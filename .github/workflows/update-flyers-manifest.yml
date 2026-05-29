@@ -1,0 +1,32 @@
+name: Update flyers manifest
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "flyers/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate data/flyers.json from flyers folder
+        run: node scripts/generate-flyers-manifest.js
+
+      - name: Commit manifest if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/flyers.json
+          if git diff --staged --quiet; then
+            echo "Manifest already up to date."
+          else
+            git commit -m "Update flyers manifest from flyers folder."
+            git push
+          fi

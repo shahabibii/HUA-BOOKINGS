@@ -27,8 +27,12 @@
     "MGV",
   ]);
 
-  /** @type {{ id: string, date: string, title: string, fileName: string }[]} */
-  let events = loadJson(STORAGE_EVENTS, []);
+  /** @type {{ id: string, date: string, title: string, fileName: string, source?: string, hostedFile?: string }[]} */
+  let localEvents = loadJson(STORAGE_EVENTS, []);
+  /** @type {typeof localEvents} */
+  let hostedEvents = [];
+  /** Merged hosted + local (hosted wins when date + title match). */
+  let events = [];
   /** @type {{ leadId: string, guest: string, property: string, arrivalDate: string, nights: number, resvType: string }[]} */
   let arrivals = loadJson(STORAGE_ARRIVALS, []);
 
@@ -43,6 +47,9 @@
 
   const PDF_DB_NAME = "hua_bookings_pdfs_v1";
   const PDF_STORE = "pdfs";
+  const HOSTED_FLYERS_MANIFEST = "data/flyers.json";
+  const HOSTED_FLYERS_BASE = "flyers/";
+  const FLYERS_CACHE_BUST = "20260531d";
 
   function openPdfDb() {
     return new Promise((resolve, reject) => {
@@ -91,15 +98,43 @@
     );
   }
 
-  async function downloadEventPdf(ev) {
+  async function ensurePdfBlob(ev) {
     let blob;
     try {
       blob = await getPdfBlob(ev.id);
     } catch {
       blob = undefined;
     }
+    if (blob && blob.size) return blob;
+
+    if (ev.hostedFile) {
+      try {
+        const url =
+          HOSTED_FLYERS_BASE +
+          ev.hostedFile.split("/").map((part) => encodeURIComponent(part)).join("/");
+        const res = await fetch(url);
+        if (res.ok) {
+          blob = await res.blob();
+          if (blob && blob.size) {
+            await putPdfBlob(ev.id, blob);
+            return blob;
+          }
+        }
+      } catch (err) {
+        console.warn("Could not fetch hosted flyer:", ev.hostedFile, err);
+      }
+    }
+    return null;
+  }
+
+  async function downloadEventPdf(ev) {
+    const blob = await ensurePdfBlob(ev);
     if (!blob || !blob.size) {
-      alert("PDF file is not available. Re-upload this flyer under Event Data.");
+      alert(
+        ev.source === "hosted"
+          ? "PDF file is not available. Check that the flyer exists in the site repository."
+          : "PDF file is not available. Re-upload this flyer under Event Data."
+      );
       return;
     }
     const name = ev.fileName && /\.pdf$/i.test(ev.fileName) ? ev.fileName : `${ev.title || "flyer"}.pdf`;
@@ -139,7 +174,83 @@
   }
 
   function saveEvents() {
-    localStorage.setItem(STORAGE_EVENTS, JSON.stringify(events));
+    localStorage.setItem(STORAGE_EVENTS, JSON.stringify(localEvents));
+    rebuildEvents();
+  }
+
+  function eventKey(ev) {
+    return `${ev.date}|${String(ev.title || "")
+      .trim()
+      .toLowerCase()}`;
+  }
+
+  function rebuildEvents() {
+    const map = new Map();
+    for (const e of hostedEvents) map.set(eventKey(e), e);
+    for (const e of localEvents) {
+      if (!map.has(eventKey(e))) {
+        map.set(eventKey(e), { ...e, source: e.source || "local" });
+      }
+    }
+    events = [...map.values()].sort(
+      (a, b) => a.date.localeCompare(b.date) || a.title.localeCompare(b.title)
+    );
+  }
+
+  function inferEventYear(month, day, ref = new Date()) {
+    const y = ref.getFullYear();
+    const today = new Date(y, ref.getMonth(), ref.getDate());
+    const eventDay = new Date(y, month - 1, day);
+    if (eventDay < today && today - eventDay > 30 * 86400000) return y + 1;
+    return y;
+  }
+
+  function normalizeEventTitle(raw) {
+    return (
+      String(raw || "")
+        .replace(/[-_]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim() || "Event"
+    );
+  }
+
+  function validDateParts(y, mo, da) {
+    if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || da < 1 || da > 31) return false;
+    const d = new Date(y, mo - 1, da);
+    return d.getFullYear() === y && d.getMonth() === mo - 1 && d.getDate() === da;
+  }
+
+  async function loadHostedFlyers() {
+    try {
+      const res = await fetch(`${HOSTED_FLYERS_MANIFEST}?v=${FLYERS_CACHE_BUST}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const files = Array.isArray(data?.files) ? data.files : [];
+      const ref = new Date();
+      const next = [];
+      for (const entry of files) {
+        const hostedFile = typeof entry === "string" ? entry : entry?.file;
+        if (!hostedFile) continue;
+        const baseName = hostedFile.split("/").pop() || hostedFile;
+        const parsed = parseEventFileName(baseName, ref);
+        if (!parsed) {
+          console.warn("Hosted flyer: could not parse date from", hostedFile);
+          continue;
+        }
+        next.push({
+          id: `hosted:${hostedFile}`,
+          date: parsed.date,
+          title: parsed.title,
+          fileName: baseName,
+          hostedFile,
+          source: "hosted",
+        });
+      }
+      hostedEvents = next;
+      rebuildEvents();
+    } catch (err) {
+      console.warn("Could not load hosted flyers:", err);
+    }
   }
 
   function saveArrivals() {
@@ -195,45 +306,56 @@
   }
 
   /**
-   * Try to extract YYYY-MM-DD and a human title from a PDF filename.
+   * Extract YYYY-MM-DD and event title from a PDF filename.
+   * Supports many formats, e.g. 2026-03-15-Spring-Gala, 03-15-2026 Beach Cleanup,
+   * 06.01 Spring Gala, 6.1-Spring Gala, 2026 06.01 Spring Gala.
    */
-  function parseEventFileName(name) {
+  function parseEventFileName(name, referenceDate = new Date()) {
     const base = name.replace(/\.pdf$/i, "").replace(/_/g, " ").trim();
 
-    const patterns = [
-      /^(\d{4})-(\d{2})-(\d{2})[-\s]+(.+)$/,
-      /^(\d{2})-(\d{2})-(\d{4})[-\s]+(.+)$/,
-      /^(\d{4})(\d{2})(\d{2})[-\s]+(.+)$/,
-      /^(\d{4})\.(\d{2})\.(\d{2})[-\s]+(.+)$/,
+    const tryResult = (y, mo, da, titleRaw) => {
+      const title = normalizeEventTitle(titleRaw);
+      if (!validDateParts(y, mo, da)) return null;
+      return { date: toISODate(y, mo - 1, da), title };
+    };
+
+    const titleSep = /[\s/_\-–—]+/;
+
+    const attempts = [
+      () => {
+        const m = base.match(/^(\d{4})[-.](\d{1,2})[-.](\d{1,2})[\s/_\-–—]+(.+)$/);
+        return m ? tryResult(+m[1], +m[2], +m[3], m[4]) : null;
+      },
+      () => {
+        const m = base.match(/^(\d{1,2})-(\d{1,2})-(\d{4})[\s/_\-–—]+(.+)$/);
+        return m ? tryResult(+m[3], +m[1], +m[2], m[4]) : null;
+      },
+      () => {
+        const m = base.match(/^(\d{4})[\s/_\-–—]+(\d{1,2})\.(\d{1,2})[\s/_\-–—]+(.+)$/);
+        return m ? tryResult(+m[1], +m[2], +m[3], m[4]) : null;
+      },
+      () => {
+        const m = base.match(/^(\d{1,2})\.(\d{1,2})[\s/_\-–—]+(.+)$/);
+        if (!m) return null;
+        const mo = +m[1];
+        const da = +m[2];
+        return tryResult(inferEventYear(mo, da, referenceDate), mo, da, m[3]);
+      },
     ];
 
-    for (const re of patterns) {
-      const m = base.match(re);
-      if (m) {
-        let y, mo, da;
-        if (re === patterns[1]) {
-          mo = parseInt(m[1], 10);
-          da = parseInt(m[2], 10);
-          y = parseInt(m[3], 10);
-        } else {
-          y = parseInt(m[1], 10);
-          mo = parseInt(m[2], 10);
-          da = parseInt(m[3], 10);
-        }
-        if (y >= 2000 && y <= 2100 && mo >= 1 && mo <= 12 && da >= 1 && da <= 31) {
-          const title = (m[4] || "Event").trim() || "Event";
-          return { date: toISODate(y, mo - 1, da), title };
-        }
-      }
+    for (const attempt of attempts) {
+      const r = attempt();
+      if (r) return r;
     }
 
     const iso = base.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/);
     if (iso) {
-      const y = parseInt(iso[1], 10);
-      const mo = parseInt(iso[2], 10);
-      const da = parseInt(iso[3], 10);
-      const rest = base.replace(iso[0], "").replace(/^[-\s]+/, "").trim();
-      return { date: toISODate(y, mo - 1, da), title: rest || "Event" };
+      const y = +iso[1];
+      const mo = +iso[2];
+      const da = +iso[3];
+      const rest = base.replace(iso[0], "").replace(titleSep, " ").trim();
+      const r = tryResult(y, mo, da, rest || "Event");
+      if (r) return r;
     }
 
     return null;
@@ -1048,14 +1170,13 @@
 
   /** Open stored PDF in a new browser tab (native viewer, zoom, print). */
   async function openFlyerInNewTab(ev) {
-    let blob;
-    try {
-      blob = await getPdfBlob(ev.id);
-    } catch {
-      blob = undefined;
-    }
+    const blob = await ensurePdfBlob(ev);
     if (!blob || !blob.size) {
-      alert("PDF file is not available. Re-upload this flyer under Event Data.");
+      alert(
+        ev.source === "hosted"
+          ? "PDF file is not available. Check that the flyer exists in the site repository."
+          : "PDF file is not available. Re-upload this flyer under Event Data."
+      );
       return;
     }
     const url = URL.createObjectURL(blob);
@@ -1153,12 +1274,7 @@
 
     let anyBlob = false;
     for (const ev of evs) {
-      let blob;
-      try {
-        blob = await getPdfBlob(ev.id);
-      } catch {
-        blob = undefined;
-      }
+      const blob = await ensurePdfBlob(ev);
       if (!blob || blob.size === 0) continue;
       anyBlob = true;
       const item = document.createElement("div");
@@ -1207,16 +1323,35 @@
 
   function renderPdfList() {
     pdfList.innerHTML = "";
-    const recent = events.slice(-20).reverse();
+    if (hostedEvents.length) {
+      const head = document.createElement("li");
+      head.className = "file-list-section";
+      head.textContent = `${hostedEvents.length} hosted flyer${hostedEvents.length === 1 ? "" : "s"} (loaded from site)`;
+      pdfList.appendChild(head);
+    }
+    const recent = events.slice(-30).reverse();
     for (const e of recent) {
       const li = document.createElement("li");
-      li.textContent = `${e.date} — ${e.title} (${e.fileName})`;
+      const badge =
+        e.source === "hosted"
+          ? "hosted"
+          : e.source === "local"
+            ? "local"
+            : "";
+      li.innerHTML = badge
+        ? `<span class="flyer-badge ${badge}">${badge}</span> ${e.date} — ${e.title} (${e.fileName})`
+        : `${e.date} — ${e.title} (${e.fileName})`;
       pdfList.appendChild(li);
     }
     if (!events.length) {
       const li = document.createElement("li");
-      li.textContent = "No PDFs loaded yet.";
+      li.textContent = "No flyers yet. Hosted flyers load automatically; add more under Event Data.";
       pdfList.appendChild(li);
+    } else if (localEvents.length) {
+      const foot = document.createElement("li");
+      foot.className = "file-list-hint";
+      foot.textContent = `${localEvents.length} local upload${localEvents.length === 1 ? "" : "s"} in this browser`;
+      pdfList.appendChild(foot);
     }
   }
 
@@ -1269,7 +1404,7 @@
       } else if (tabId === "flyers") {
         headerSubtitle.hidden = false;
         headerSubtitle.textContent =
-          "Use Event Data to add PDFs so dates appear on the calendar (file names include date + title).";
+          "Hosted flyers load from the site automatically. Upload extra PDFs or a whole folder here if needed.";
       } else {
         headerSubtitle.hidden = false;
         headerSubtitle.textContent =
@@ -1367,29 +1502,61 @@
   }
 
   document.getElementById("pdf-input").addEventListener("change", async (e) => {
-    const files = e.target.files;
-    if (!files || !files.length) return;
+    await importPdfFiles(e.target.files);
+    e.target.value = "";
+  });
+
+  const pdfFolderInput = document.getElementById("pdf-folder-input");
+  if (pdfFolderInput) {
+    pdfFolderInput.addEventListener("change", async (e) => {
+      await importPdfFiles(e.target.files);
+      e.target.value = "";
+    });
+  }
+
+  async function importPdfFiles(fileList) {
+    if (!fileList || !fileList.length) return;
     let added = 0;
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
+    let skipped = 0;
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      if (!/\.pdf$/i.test(file.name)) {
+        skipped++;
+        continue;
+      }
       const parsed = parseEventFileName(file.name);
-      if (!parsed) continue;
-      const id =
-        parsed.date +
-        "-" +
-        parsed.title.replace(/\s+/g, "-").slice(0, 40) +
-        "-" +
-        Math.random().toString(36).slice(2, 8);
-      events.push({
-        id,
-        date: parsed.date,
-        title: parsed.title,
-        fileName: file.name,
-      });
-      try {
-        await putPdfBlob(id, file);
-      } catch (err) {
-        console.warn("Could not store PDF for preview:", err);
+      if (!parsed) {
+        skipped++;
+        continue;
+      }
+      const key = eventKey({ date: parsed.date, title: parsed.title });
+      const existingIdx = localEvents.findIndex((ev) => eventKey(ev) === key);
+      if (existingIdx >= 0) {
+        localEvents[existingIdx].fileName = file.name;
+        try {
+          await putPdfBlob(localEvents[existingIdx].id, file);
+        } catch (err) {
+          console.warn("Could not store PDF for preview:", err);
+        }
+      } else {
+        const id =
+          parsed.date +
+          "-" +
+          parsed.title.replace(/\s+/g, "-").slice(0, 40) +
+          "-" +
+          Math.random().toString(36).slice(2, 8);
+        localEvents.push({
+          id,
+          date: parsed.date,
+          title: parsed.title,
+          fileName: file.name,
+          source: "local",
+        });
+        try {
+          await putPdfBlob(id, file);
+        } catch (err) {
+          console.warn("Could not store PDF for preview:", err);
+        }
       }
       added++;
     }
@@ -1397,29 +1564,42 @@
     renderPdfList();
     renderCalendar();
     renderPdfPreview();
-    e.target.value = "";
-    if (added < files.length && added === 0) {
+    if (added === 0 && skipped > 0) {
       alert(
-        "Could not read dates from file names. Use a pattern like 2026-03-15-Event-Name.pdf"
+        "Could not read dates from file names. Examples: 06.01 Spring Gala.pdf, 6.01 Spring Gala.pdf, 6.1-Spring Gala.pdf"
       );
+    } else if (added > 0 && skipped > 0) {
+      alert(`Added ${added} flyer${added === 1 ? "" : "s"}. Skipped ${skipped} file${skipped === 1 ? "" : "s"} (not PDF or unrecognised name).`);
     }
-  });
+  }
 
   document.getElementById("clear-flyers").addEventListener("click", async () => {
+    if (!localEvents.length) {
+      alert("No local flyer uploads to clear. Hosted flyers from the site are kept.");
+      return;
+    }
     if (
       !confirm(
-        "Remove all flyers from this browser? This clears the calendar entries and stored PDFs so you can upload fresh copies without duplicates."
+        "Remove your local flyer uploads from this browser? Hosted flyers from the site will stay on the calendar."
       )
     ) {
       return;
     }
     revokePreviewUrls();
-    events = [];
+    const localIds = new Set(localEvents.map((e) => e.id));
+    localEvents = [];
     saveEvents();
     try {
-      await clearAllPdfBlobs();
+      const db = await openPdfDb();
+      await new Promise((resolve, reject) => {
+        const tx = db.transaction(PDF_STORE, "readwrite");
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        const store = tx.objectStore(PDF_STORE);
+        for (const id of localIds) store.delete(id);
+      });
     } catch (err) {
-      console.warn("Could not clear PDF storage:", err);
+      console.warn("Could not clear local PDF storage:", err);
     }
     selectedDay = null;
     selectedEventId = null;
@@ -1649,7 +1829,13 @@
     reader.readAsText(file);
   });
 
+  rebuildEvents();
   renderPdfList();
   renderCalendar();
   renderPdfPreview();
+  loadHostedFlyers().then(() => {
+    renderPdfList();
+    renderCalendar();
+    renderPdfPreview();
+  });
 })();

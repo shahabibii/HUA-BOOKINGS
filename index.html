@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="styles.css?v=20260531b" />
+  <link rel="stylesheet" href="styles.css?v=20260531d" />
 </head>
 <body>
   <div class="app">
@@ -31,14 +31,20 @@
     <section class="upload-panels" id="upload-panels" hidden>
       <div class="panel active" id="panel-flyers" role="tabpanel">
         <p class="hint">
-          Upload one or more PDFs. The <strong>file name</strong> should include the event date and name, for example:
-          <code>2026-03-15-Spring-Gala.pdf</code> or <code>03-15-2026_Beach-Cleanup.pdf</code>
-          Use <strong>Clear</strong> before re-uploading if you see duplicate events on the same day.
+          <strong>Hosted flyers</strong> load for everyone from the <code>flyers/</code> folder in the repo (see
+          <code>flyers/README.md</code>) — drop a month folder like <code>flyers/june/</code> with files named
+          <code>06.01 Spring Gala.pdf</code> or <code>6.01 Spring Gala.pdf</code>, then push.
+          To add flyers only in this browser, choose files or an entire folder below.
+          <strong>Clear</strong> removes local uploads only.
         </p>
         <div class="panel-row">
           <label class="file-btn">
             <input type="file" id="pdf-input" accept=".pdf,application/pdf" multiple />
             <span>Choose PDF files</span>
+          </label>
+          <label class="file-btn secondary">
+            <input type="file" id="pdf-folder-input" accept=".pdf,application/pdf" webkitdirectory directory multiple />
+            <span>Choose flyer folder</span>
           </label>
           <button type="button" class="clear-data-btn" id="clear-flyers">Clear</button>
         </div>
@@ -86,7 +92,7 @@
           <h4 class="pdf-preview-heading" id="pdf-preview-heading"></h4>
           <div class="pdf-preview-frames" id="pdf-preview-frames"></div>
           <p class="pdf-preview-hint" id="pdf-preview-hint" hidden>
-            Flyer metadata is saved, but the PDF file is only stored in this browser after you upload it here. Re-upload under <strong>Event Data</strong> to enable preview.
+            Could not load the PDF preview. Hosted flyers are fetched from the site; local uploads must be added under <strong>Event Data</strong>.
           </p>
         </div>
       </aside>
@@ -153,6 +159,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/legacy/build/pdf.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <script src="app.js?v=20260531b"></script>
+  <script src="app.js?v=20260531d"></script>
 </body>
 </html>
