@@ -428,8 +428,8 @@ body {
 .grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-auto-rows: minmax(5.5rem, auto);
-  gap: 5px;
+  grid-auto-rows: minmax(6.75rem, auto);
+  gap: 6px;
   width: 100%;
   box-sizing: border-box;
 }
@@ -437,12 +437,12 @@ body {
 .day-cell {
   width: 100%;
   min-width: 0;
-  min-height: 5.5rem;
+  min-height: 6.75rem;
   height: 100%;
   border: 1px solid transparent;
   border-radius: 8px;
   background: var(--surface2);
-  padding: 6px 7px 5px;
+  padding: 7px 8px 5px;
   box-sizing: border-box;
   cursor: pointer;
   text-align: left;
@@ -477,12 +477,13 @@ body {
 
 .day-cell.has-event {
   box-shadow: inset 0 -3px 0 var(--event);
-  min-height: 6.5rem;
+  min-height: 8.25rem;
   padding-bottom: 11px;
 }
 
 .day-cell.has-multi-event {
   box-shadow: inset 0 -3px 0 var(--event), inset 0 -7px 0 var(--event-alt);
+  min-height: 9.5rem;
   padding-bottom: 15px;
 }
 
@@ -495,11 +496,12 @@ body {
 .day-events-wrap {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   width: 100%;
   min-width: 0;
   flex: 1;
   min-height: 0;
+  margin-top: 6px;
 }
 
 .day-event-block {
@@ -510,8 +512,8 @@ body {
 
 .day-event-title {
   display: block;
-  font-size: 0.68rem;
-  line-height: 1.25;
+  font-size: 0.76rem;
+  line-height: 1.3;
   font-weight: 600;
   color: var(--text);
   word-break: break-word;
