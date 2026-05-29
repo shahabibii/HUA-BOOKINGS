@@ -63,7 +63,7 @@ body {
   min-width: min(100%, 280px);
 }
 
-/* Dashboard: compact header — logo + BOOK HUA, then calendar */
+/* Dashboard: compact header — logo only */
 .app--dashboard .top {
   position: relative;
   flex-direction: column;
@@ -130,24 +130,6 @@ body {
     max-width: 300px;
     width: min(100%, 300px);
   }
-
-  .app--dashboard .top-hero {
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap: 1.25rem;
-  }
-
-  .app--dashboard .brand {
-    width: auto;
-    flex: 0 1 auto;
-  }
-
-  .app--dashboard .hua-action-container {
-    flex: 0 0 auto;
-    margin-top: 0;
-    padding: 0;
-  }
 }
 
 .brand h1 {
@@ -157,16 +139,30 @@ body {
   letter-spacing: -0.02em;
 }
 
-.app--dashboard .hua-action-container {
-  margin-top: 0;
-}
-
 .hua-action-container {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 6px 0;
   background: transparent;
+}
+
+.calendar-top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.hua-action-container--calendar {
+  padding: 0;
+  width: 100%;
+}
+
+.calendar-top .cal-header {
+  margin-bottom: 0;
+  width: 100%;
 }
 
 .nyx-btn {
