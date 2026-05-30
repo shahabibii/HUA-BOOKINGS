@@ -1190,12 +1190,12 @@ body {
 }
 
 .site-footer {
-  background-color: var(--bg);
+  background: transparent;
   color: var(--text);
   padding: 24px 0;
   text-align: center;
   font-family: var(--font);
-  border-top: 1px solid var(--border);
+  border-top: none;
   flex-shrink: 0;
   width: 100%;
   margin-top: auto;
