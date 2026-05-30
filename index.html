@@ -17,11 +17,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css?v=20260531r" />
-  <link rel="stylesheet" href="home.css?v=20260531r" />
+  <link rel="stylesheet" href="home.css?v=20260531s" />
 </head>
 <body class="home-body">
   <div class="home-screen">
-    <div class="film-grain" aria-hidden="true"></div>
+    <canvas class="film-grain-canvas" id="film-grain-canvas" aria-hidden="true"></canvas>
     <div class="home-frame" aria-hidden="true"></div>
 
     <div class="nyx-menu-container">
@@ -50,38 +50,55 @@
               role="img"
               aria-hidden="true"
             >
-            <title>ONYX</title>
-            <defs>
-              <linearGradient id="silverGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stop-color="#C0C0C0" />
-                <stop offset="20%" stop-color="#FFFFFF" />
-                <stop offset="45%" stop-color="#909090" />
-                <stop offset="70%" stop-color="#E8E8E8" />
-                <stop offset="100%" stop-color="#787878" />
-              </linearGradient>
-            </defs>
+              <title>ONYX</title>
+              <defs>
+                <linearGradient id="silverBase" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stop-color="#C8C8C8" />
+                  <stop offset="30%" stop-color="#FFFFFF" />
+                  <stop offset="60%" stop-color="#909090" />
+                  <stop offset="100%" stop-color="#606060" />
+                </linearGradient>
+                <linearGradient id="sweepGrad" x1="-50%" y1="0%" x2="0%" y2="0%">
+                  <stop offset="0%" stop-color="rgba(255,255,255,0)" />
+                  <stop offset="40%" stop-color="rgba(255,255,255,0)" />
+                  <stop offset="50%" stop-color="rgba(255,255,255,0.7)" />
+                  <stop offset="60%" stop-color="rgba(255,255,255,0)" />
+                  <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                </linearGradient>
+              </defs>
 
-            <rect width="100%" height="100%" fill="transparent" />
+              <rect width="100%" height="100%" fill="transparent" />
 
-            <g transform="translate(20, 10)">
-              <polygon points="150,40 240,90 240,190 150,240 60,190 60,90" fill="none" stroke="url(#silverGrad)" stroke-width="4" stroke-linejoin="round" />
+              <g transform="translate(20, 10)" stroke="url(#silverBase)" fill="url(#silverBase)">
+                <polygon points="150,40 240,90 240,190 150,240 60,190 60,90" fill="none" stroke-width="4" stroke-linejoin="round" />
+                <line x1="150" y1="40" x2="150" y2="70" stroke-width="3" />
+                <line x1="150" y1="240" x2="150" y2="210" stroke-width="2" />
+                <line x1="60" y1="90" x2="90" y2="105" stroke-width="2" />
+                <line x1="240" y1="90" x2="210" y2="105" stroke-width="2" />
+                <line x1="60" y1="190" x2="90" y2="175" stroke-width="2" />
+                <line x1="240" y1="190" x2="210" y2="175" stroke-width="2" />
+                <polygon points="150,70 210,105 210,175 150,210 90,175 90,105" fill="none" stroke-width="1.5" stroke-dasharray="2,2" />
+                <polygon points="150,95 190,118 190,162 150,185 110,162 110,118" fill="rgba(255,255,255,0.03)" stroke-width="3" />
+                <polygon points="150,40 180,90 150,70" stroke-width="0" opacity="0.28" />
+              </g>
 
-              <line x1="150" y1="40" x2="150" y2="70" stroke="url(#silverGrad)" stroke-width="3" />
-              <line x1="150" y1="240" x2="150" y2="210" stroke="url(#silverGrad)" stroke-width="2" />
-              <line x1="60" y1="90" x2="90" y2="105" stroke="url(#silverGrad)" stroke-width="2" />
-              <line x1="240" y1="90" x2="210" y2="105" stroke="url(#silverGrad)" stroke-width="2" />
-              <line x1="60" y1="190" x2="90" y2="175" stroke="url(#silverGrad)" stroke-width="2" />
-              <line x1="240" y1="190" x2="210" y2="175" stroke="url(#silverGrad)" stroke-width="2" />
+              <text x="270" y="140" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="125" font-weight="200" fill="url(#silverBase)" letter-spacing="6" dominant-baseline="central">NYX</text>
 
-              <polygon points="150,40 180,90 150,70" fill="url(#silverGrad)" opacity="0.28" />
+              <g class="home-logo-sweep-layer" transform="translate(20, 10)" stroke="url(#sweepGrad)" fill="url(#sweepGrad)">
+                <polygon points="150,40 240,90 240,190 150,240 60,190 60,90" fill="none" stroke-width="4" stroke-linejoin="round" />
+                <line x1="150" y1="40" x2="150" y2="70" stroke-width="3" />
+                <line x1="150" y1="240" x2="150" y2="210" stroke-width="2" />
+                <line x1="60" y1="90" x2="90" y2="105" stroke-width="2" />
+                <line x1="240" y1="90" x2="210" y2="105" stroke-width="2" />
+                <line x1="60" y1="190" x2="90" y2="175" stroke-width="2" />
+                <line x1="240" y1="190" x2="210" y2="175" stroke-width="2" />
+                <polygon points="150,70 210,105 210,175 150,210 90,175 90,105" fill="none" stroke-width="1.5" stroke-dasharray="2,2" />
+                <polygon points="150,95 190,118 190,162 150,185 110,162 110,118" fill="rgba(255,255,255,0.03)" stroke-width="3" />
+                <polygon points="150,40 180,90 150,70" stroke-width="0" opacity="0.28" />
+              </g>
 
-              <polygon points="150,70 210,105 210,175 150,210 90,175 90,105" fill="none" stroke="url(#silverGrad)" stroke-width="1.5" stroke-dasharray="2,2" />
-
-              <polygon points="150,95 190,118 190,162 150,185 110,162 110,118" fill="rgba(255,255,255,0.03)" stroke="url(#silverGrad)" stroke-width="3" />
-            </g>
-
-            <text x="270" y="140" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="125" font-weight="200" fill="url(#silverGrad)" letter-spacing="6" dominant-baseline="central">NYX</text>
-          </svg>
+              <text class="home-logo-sweep-layer" x="270" y="140" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif" font-size="125" font-weight="200" fill="url(#sweepGrad)" letter-spacing="6" dominant-baseline="central">NYX</text>
+            </svg>
           </div>
         </div>
       </a>
@@ -89,7 +106,7 @@
   </div>
 
   <script src="menu.js?v=20260531r"></script>
-  <script src="home.js?v=20260531r"></script>
+  <script src="home.js?v=20260531s"></script>
   <script src="footer.js?v=20260531r"></script>
 </body>
 </html>
