@@ -21,20 +21,6 @@ body.home-body {
   background: #0d0e10;
 }
 
-.home-screen .nyx-menu-container {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 40;
-}
-
-@media (max-width: 640px) {
-  .home-screen .nyx-menu-container {
-    top: 12px;
-    left: 12px;
-  }
-}
-
 .film-grain-canvas {
   position: fixed;
   inset: 0;
@@ -43,20 +29,6 @@ body.home-body {
   pointer-events: none;
   z-index: 50;
   mix-blend-mode: multiply;
-}
-
-.home-frame {
-  position: fixed;
-  inset: 20px;
-  pointer-events: none;
-  z-index: 30;
-  border: 0.5px solid rgba(255, 255, 255, 0.06);
-}
-
-@media (min-width: 768px) {
-  .home-frame {
-    inset: 28px;
-  }
 }
 
 .home-logo-stage {
