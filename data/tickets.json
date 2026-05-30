@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-30T13:05:25.3925488Z",
+  "updatedAt": "2026-05-30T13:08:31.4942587Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -228,7 +228,7 @@
     {
       "date": "2026-06-07",
       "sheetName": "06.07 Charley's W&D",
-      "ticketsAvailable": 70,
+      "ticketsAvailable": 77,
       "title": "Charley's W&D",
       "workbook": "June"
     },
