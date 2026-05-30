@@ -4,7 +4,6 @@
   function initHeaderLogoSweep() {
     const grad = document.getElementById("sweepGrad");
     if (!grad) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
     let start = null;
     let rafId = null;

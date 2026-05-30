@@ -31,13 +31,15 @@ function main(
 
   const parsedMonth = parseMonthYear(monthYear);
   if (!parsedMonth) {
-    return JSON.stringify({
+    const json = JSON.stringify({
       officeId,
       month: monthYear,
       error: "Invalid monthYear — use YYYY-MM",
       days: [],
       skippedTabNames,
     });
+    console.log(json);
+    return json;
   }
 
   for (const sheet of workbook.getWorksheets()) {
@@ -75,12 +77,14 @@ function main(
 
   days.sort((a, b) => a.day - b.day);
 
-  return JSON.stringify({
+  const json = JSON.stringify({
     officeId,
     month: monthYear,
     days,
     skippedTabNames,
   });
+  console.log(json);
+  return json;
 }
 
 function parseMonthYear(value: string): { year: number; month: number } | null {

@@ -29,7 +29,7 @@ Then open http://localhost:8766/ (trailing slash matters for asset paths).
 |------|------|--------|
 | **HOME** | `/` (`index.html`) | Cinematic landing — film grain, animated ONYX logo; logo click → HUA |
 | **HUA** | `/hua/` | Full dashboard: calendar, email buttons, flyers, live tickets |
-| **AVALIBILITY** | `/availability/` | Placeholder (“coming soon”) |
+| **AVALIBILITY** | `/availability/` | Dashboard built — waiting on Power Automate live sync |
 | **REPORTING** | `/reporting/` | Placeholder (“coming soon”) |
 
 **Menu** (top-left crystalline button): HOME, HUA, AVALIBILITY, REPORTING — shared via `menu.js` on every page.
@@ -46,6 +46,7 @@ Then open http://localhost:8766/ (trailing slash matters for asset paths).
 - **Hosted flyers** — `flyers/` + `data/flyers.json`
 - **BOOK HUA** — Outlook Web / Desktop .eml / download .eml; **To** from `data/booking-recipients.json`
 - **Power Automate** → GitHub Actions → `data/tickets.json`
+- **Wave Availability page** — `/availability/` UI + `data/availability.json` (preview data until PA flow finishes)
 - **Compact calendar cells** — tighter day boxes, single-line email button labels
 - **Event Data / Arrivals tabs** — still hidden in UI (commented in `hua/index.html`)
 
@@ -69,9 +70,17 @@ Then open http://localhost:8766/ (trailing slash matters for asset paths).
 
 After CSS/JS changes, bump `?v=` query strings in HTML files (currently `20260531r` on most pages).
 
+## Paused — Wave Availability (network down)
+
+**Read [`AVAILABILITY-RESUME.md`](./AVAILABILITY-RESUME.md)** for exact resume steps.
+
+Tell Cursor:
+
+> Resume Wave Availability — fix the Build availability JSON step in Power Automate flow **Wave Avalibility**, test the flow, and verify the site shows June data.
+
 ## Common next steps
 
-- [ ] Build out **AVALIBILITY** page
+- [ ] **Finish Wave Availability Power Automate flow** — see `AVAILABILITY-RESUME.md`
 - [ ] Build out **REPORTING** page
 - [ ] Add July+ months to Power Automate flow
 - [ ] Rotate GitHub PAT before expiry
@@ -84,7 +93,7 @@ GitHub Pages on **main**. Push → rebuild in ~1–2 min. Hard refresh (`Cmd+Shi
 ## Last known good state
 
 - Branch: **main**, synced with **origin/main**
-- Latest feature commit: **REPORTING** menu item + placeholder page
-- All work committed and pushed — safe to close Cursor
+- Availability page + GitHub dispatch workflow on **main**; PA flow **Wave Avalibility** half-built in Power Automate (not in git)
+- Paused: company network down — resume from `AVAILABILITY-RESUME.md`
 
 *Update this file when you make major changes.*

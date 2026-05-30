@@ -92,10 +92,3 @@ body.home-body {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.018); }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .home-logo-drift,
-  .home-logo-pulse {
-    animation: none;
-  }
-}
