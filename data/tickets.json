@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-30T13:08:31.4942587Z",
+  "updatedAt": "2026-05-30T13:11:23.2908467Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -263,7 +263,7 @@
     {
       "date": "2026-06-12",
       "sheetName": "06.12 Discovery Cove",
-      "ticketsAvailable": 19,
+      "ticketsAvailable": 25,
       "title": "Discovery Cove",
       "workbook": "June"
     },
