@@ -155,12 +155,10 @@ body {
   align-items: center;
   justify-content: flex-start;
   text-align: center;
-  margin: -0.5rem -1.25rem 0.5rem;
-  padding: 0.35rem 1.25rem 0.5rem;
-  background:
-    radial-gradient(ellipse 90% 120% at 50% -20%, rgba(61, 156, 240, 0.06) 0%, transparent 55%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
-  border-bottom: 1px solid rgba(45, 58, 77, 0.35);
+  margin: 0 0 0.5rem;
+  padding: 0.35rem 0 0.5rem;
+  background: transparent;
+  border: none;
 }
 
 .app--page .top-hero {
@@ -253,12 +251,10 @@ body {
   align-items: center;
   justify-content: flex-start;
   text-align: center;
-  margin: -0.5rem -1.25rem 0.65rem;
-  padding: 0.35rem 1.25rem 0.5rem;
-  background:
-    radial-gradient(ellipse 90% 120% at 50% -20%, rgba(61, 156, 240, 0.06) 0%, transparent 55%),
-    linear-gradient(180deg, var(--bg) 0%, var(--bg) 100%);
-  border-bottom: 1px solid rgba(45, 58, 77, 0.35);
+  margin: 0 0 0.65rem;
+  padding: 0.35rem 0 0.5rem;
+  background: transparent;
+  border: none;
 }
 
 .app--dashboard .top-hero {
