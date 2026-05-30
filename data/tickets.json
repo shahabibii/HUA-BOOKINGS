@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-30T14:44:30.5453795Z",
+  "updatedAt": "2026-05-30T15:47:34.6057068Z",
   "events": [
     {
       "date": "2026-05-01",
@@ -186,7 +186,7 @@
     {
       "date": "2026-05-30",
       "sheetName": "05.30 HOB & Cirque",
-      "ticketsAvailable": 0,
+      "ticketsAvailable": 1,
       "title": "HOB & Cirque",
       "workbook": "May"
     },
@@ -228,7 +228,7 @@
     {
       "date": "2026-06-07",
       "sheetName": "06.07 Charley's W&D",
-      "ticketsAvailable": 77,
+      "ticketsAvailable": 73,
       "title": "Charley's W&D",
       "workbook": "June"
     },
