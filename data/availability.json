@@ -1,0 +1,81 @@
+{
+  "sourceNote": "Sample data for UI preview only. Live wave times and counts come from each office SharePoint workbook via Power Automate.",
+  "updatedAt": "2026-05-30T12:00:00.000Z",
+  "offices": {
+    "office48": {
+      "label": "Office 48 - OWN",
+      "months": {
+        "2026-05": {
+          "days": {
+            "2026-05-01": {
+              "sheetName": "1",
+              "openCount": 20,
+              "totalCount": 22,
+              "slots": [
+                { "time": "8:00 AM", "open": true, "spotsOpen": 4, "totalSpots": 4, "detail": null },
+                { "time": "8:15 AM", "open": true, "spotsOpen": 3, "totalSpots": 3, "detail": null },
+                { "time": "9:00 AM", "open": true, "spotsOpen": 2, "totalSpots": 2, "detail": null },
+                { "time": "9:30 AM", "open": false, "spotsOpen": 0, "totalSpots": 2, "detail": "FULL" },
+                { "time": "10:30 AM", "open": true, "spotsOpen": 5, "totalSpots": 5, "detail": null },
+                { "time": "11:00 AM", "open": true, "spotsOpen": 1, "totalSpots": 1, "detail": null },
+                { "time": "12:00 PM", "open": true, "spotsOpen": 3, "totalSpots": 3, "detail": null },
+                { "time": "1:00 PM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "2:00 PM", "open": true, "spotsOpen": 1, "totalSpots": 1, "detail": null },
+                { "time": "3:30 PM", "open": true, "spotsOpen": 1, "totalSpots": 1, "detail": null }
+              ]
+            },
+            "2026-05-02": {
+              "sheetName": "2",
+              "openCount": 6,
+              "totalCount": 8,
+              "slots": [
+                { "time": "8:00 AM", "open": true, "spotsOpen": 2, "totalSpots": 3, "detail": null },
+                { "time": "9:00 AM", "open": true, "spotsOpen": 1, "totalSpots": 2, "detail": null },
+                { "time": "10:00 AM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "11:30 AM", "open": true, "spotsOpen": 3, "totalSpots": 3, "detail": null },
+                { "time": "1:00 PM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" }
+              ]
+            },
+            "2026-05-03": {
+              "sheetName": "3",
+              "openCount": 7,
+              "totalCount": 7,
+              "slots": [
+                { "time": "8:30 AM", "open": true, "spotsOpen": 2, "totalSpots": 2, "detail": null },
+                { "time": "10:00 AM", "open": true, "spotsOpen": 4, "totalSpots": 4, "detail": null },
+                { "time": "2:00 PM", "open": true, "spotsOpen": 1, "totalSpots": 1, "detail": null }
+              ]
+            },
+            "2026-05-04": {
+              "sheetName": "4",
+              "openCount": 1,
+              "totalCount": 4,
+              "slots": [
+                { "time": "8:00 AM", "open": true, "spotsOpen": 1, "totalSpots": 1, "detail": null },
+                { "time": "9:30 AM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "11:00 AM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "1:30 PM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" }
+              ]
+            },
+            "2026-05-05": {
+              "sheetName": "5",
+              "openCount": 0,
+              "totalCount": 5,
+              "slots": [
+                { "time": "8:00 AM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "9:00 AM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "10:30 AM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "12:00 PM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" },
+                { "time": "2:00 PM", "open": false, "spotsOpen": 0, "totalSpots": 1, "detail": "FULL" }
+              ]
+            }
+          }
+        }
+      }
+    },
+    "office46": {
+      "label": "Office 46 - NON OWN",
+      "months": {}
+    }
+  }
+}

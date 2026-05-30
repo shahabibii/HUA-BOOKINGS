@@ -1,0 +1,27 @@
+{
+  "note": "Add a new workbook entry each month for both offices. Power Automate uses sharePointFileId to read the live Excel file.",
+  "offices": {
+    "office48": {
+      "label": "Office 48 - OWN",
+      "workbooks": [
+        {
+          "month": "2026-05",
+          "displayName": "May 2026",
+          "sharePointFileId": "d63a7305-fe67-4aa9-be73-e25fdc581f78",
+          "sharePointUrl": "https://hgvc.sharepoint.com/:x:/r/sites/HGVOrlInHouseMarketing/_layouts/15/Doc.aspx?action=edit&sourcedoc=%7Bd63a7305-fe67-4aa9-be73-e25fdc581f78%7D"
+        }
+      ]
+    },
+    "office46": {
+      "label": "Office 46 - NON OWN",
+      "workbooks": [
+        {
+          "month": "2026-05",
+          "displayName": "May 2026",
+          "sharePointFileId": "400e6d21-7450-45c7-ba96-7e4d0026eeb6",
+          "sharePointUrl": "https://hgvc.sharepoint.com/:x:/r/sites/HGVOrlInHouseMarketing/_layouts/15/Doc.aspx?action=edit&sourcedoc=%7B400e6d21-7450-45c7-ba96-7e4d0026eeb6%7D"
+        }
+      ]
+    }
+  }
+}
