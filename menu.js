@@ -1,17 +1,20 @@
 (function () {
   "use strict";
 
+  const NESTED_SECTIONS = new Set(["hua", "availability", "reporting"]);
+
   const NAV_ITEMS = [
     { id: "home", label: "HOME", segment: "" },
     { id: "hua", label: "HUA", segment: "hua/" },
     { id: "availability", label: "AVALIBILITY", segment: "availability/" },
+    { id: "reporting", label: "REPORTING", segment: "reporting/" },
   ];
 
   function resolveSiteBase() {
     const parts = location.pathname.split("/").filter(Boolean);
     if (parts.length && /\.[a-z0-9]+$/i.test(parts[parts.length - 1])) parts.pop();
     const last = parts[parts.length - 1];
-    if (last === "hua" || last === "availability") parts.pop();
+    if (NESTED_SECTIONS.has(last)) parts.pop();
     return parts.length ? "/" + parts.join("/") + "/" : "/";
   }
 
@@ -19,6 +22,7 @@
     const path = location.pathname;
     if (/\/hua(\/|$)/i.test(path)) return "hua";
     if (/\/availability(\/|$)/i.test(path)) return "availability";
+    if (/\/reporting(\/|$)/i.test(path)) return "reporting";
     return "home";
   }
 

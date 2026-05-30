@@ -70,7 +70,7 @@
     const parts = location.pathname.split("/").filter(Boolean);
     if (parts.length && /\.[a-z0-9]+$/i.test(parts[parts.length - 1])) parts.pop();
     const last = parts[parts.length - 1];
-    if (last === "hua" || last === "availability") parts.pop();
+    if (last === "hua" || last === "availability" || last === "reporting") parts.pop();
     return parts.length ? "/" + parts.join("/") + "/" : "/";
   }
 
